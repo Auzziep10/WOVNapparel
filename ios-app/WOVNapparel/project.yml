@@ -1,0 +1,30 @@
+name: WOVNapparel
+options:
+  bundleIdPrefix: com.wovn
+  deploymentTarget:
+    iOS: 16.0
+targets:
+  WOVNapparel:
+    type: application
+    platform: iOS
+    sources:
+      - App
+      - Features
+    settings:
+      base:
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        GENERATE_INFOPLIST_FILE: YES
+        DEVELOPMENT_ASSET_PATHS: '"App/Preview Content"'
+    dependencies:
+      - package: Firebase
+        product: FirebaseAuth
+      - package: Firebase
+        product: FirebaseFirestore
+      - package: Firebase
+        product: FirebaseStorage
+
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk.git
+    from: 10.20.0

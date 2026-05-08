@@ -1,0 +1,18 @@
+# Node.js / Next.js
+web-companion/node_modules/
+web-companion/.next/
+web-companion/out/
+web-companion/.env*.local
+web-companion/serviceAccountKey.json
+
+# iOS / Xcode
+ios-app/WOVNapparel/xcuserdata/
+ios-app/WOVNapparel/.build/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+.DS_Store
+
+# Credentials
+serviceAccountKey.json
+GoogleService-Info.plist

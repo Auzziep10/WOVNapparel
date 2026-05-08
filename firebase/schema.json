@@ -1,0 +1,45 @@
+{
+  "users": {
+    "userId_123": {
+      "hasVerifiedLiDARProfile": true,
+      "heightCm": 182.5,
+      "chromaticProfile": {
+        "skinLAB": [55.2, 12.3, 15.6],
+        "hairLAB": [15.1, 2.3, 3.4],
+        "chromaticContrastIndex": 40.1
+      },
+      "measurements": {
+        "chestCm": 105.0,
+        "waistCm": 85.0,
+        "hipsCm": 100.0
+      },
+      "lidarMeshRef": "gs://wovn-storage/meshes/userId_123.obj"
+    }
+  },
+  "garments": {
+    "garmentId_456": {
+      "name": "Oversized Heavyweight Tee",
+      "brand": "WOVN",
+      "renderUrl": "gs://wovn-storage/renders/tee_front.png",
+      "techPackRef": "techPackId_789"
+    }
+  },
+  "tech_packs": {
+    "techPackId_789": {
+      "garmentId": "garmentId_456",
+      "baseSize": "M",
+      "measurements": {
+        "bustCm": 110.0,
+        "waistCm": 108.0,
+        "hemCm": 108.0,
+        "sleeveLengthCm": 24.0
+      },
+      "fabricProperties": {
+        "stretchCoefficient": 1.15
+      },
+      "dominantColorways": [
+        {"name": "Midnight Charcoal", "lab": [25.0, 0.0, -2.0]}
+      ]
+    }
+  }
+}
