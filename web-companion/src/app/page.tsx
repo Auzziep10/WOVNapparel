@@ -79,9 +79,16 @@ export default async function Dashboard() {
                     </div>
                   )}
                   
-                  {/* Base Size Badge */}
-                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs font-bold tracking-wider text-white">
-                    SIZE {pack.baseSize}
+                  {/* Size Badges */}
+                  <div className="absolute top-4 right-4 flex flex-col gap-1.5 items-end">
+                    <div className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-bold tracking-wider text-white">
+                      BASE: {pack.baseSize}
+                    </div>
+                    {pack.matrices?.chest?.grades && Object.keys(pack.matrices.chest.grades).length > 0 && (
+                      <div className="bg-blue-600/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-bold tracking-wider text-white shadow-[0_0_10px_rgba(37,99,235,0.4)]">
+                        {Object.keys(pack.matrices.chest.grades).length} SIZES MATRIX
+                      </div>
+                    )}
                   </div>
                   
                   {/* Subtle Gradient Overlay */}
@@ -101,11 +108,21 @@ export default async function Dashboard() {
                   {/* Measurement Data Grid */}
                   <div className="grid grid-cols-2 gap-2 mt-auto">
                     <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-3 flex flex-col justify-center">
-                      <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-1">Chest</span>
+                      <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
+                        Chest
+                        {pack.matrices?.chest?.grades && (
+                           <span className="text-[8px] bg-white/10 px-1 rounded text-zinc-400">GRADED</span>
+                        )}
+                      </span>
                       <span className="text-zinc-100 font-mono text-sm">{pack.measurements?.bustCm || '--'}</span>
                     </div>
                     <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-3 flex flex-col justify-center">
-                      <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-1">Length</span>
+                      <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
+                        Length
+                        {pack.matrices?.hem?.grades && (
+                           <span className="text-[8px] bg-white/10 px-1 rounded text-zinc-400">GRADED</span>
+                        )}
+                      </span>
                       <span className="text-zinc-100 font-mono text-sm">{pack.measurements?.hemCm || '--'}</span>
                     </div>
                   </div>
