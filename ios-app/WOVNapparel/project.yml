@@ -15,6 +15,7 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_NSCameraUsageDescription: '"WOVN requires camera access to perform 3D spatial sizing and skin tone analysis."'
     dependencies:
       - package: Firebase
         product: FirebaseAuth
