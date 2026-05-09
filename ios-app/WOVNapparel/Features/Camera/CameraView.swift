@@ -165,27 +165,22 @@ struct CameraView: View {
             payload["userSkinToneLab"] = lab
         }
         
-        // VERCEL FIREWALL BYPASS: Execute the Geometric Match Algorithm locally
-        // Since Vercel Preview URLs block raw API requests with a 403 Forbidden login page,
-        // we will do the exact same math the server would have done.
-        let techPackChest = 105.0
-        let stretchCoefficient = 1.1
-        let userChest = metrics["chestCm"] ?? 100.0
+        // Point to the Next.js server running locally on the Mac
+        guard let url = URL(string: "http://192.168.4.94:3000/api/match") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
         
-        let chestDiff = (techPackChest * stretchCoefficient) - userChest
-        
-        var recommendedSize = "M"
-        if chestDiff < -5 {
-            recommendedSize = "L"
-        } else if chestDiff > 10 {
-            recommendedSize = "S"
-        }
-        
-        // Simulate a 1-second network call for realism
-        try await Task.sleep(nanoseconds: 1_000_000_000)
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(MatchResponse.self, from: data)
         
         DispatchQueue.main.async {
-            self.matchResult = "Size \(recommendedSize)"
+            if response.success, let matchData = response.data {
+                self.matchResult = "Size \(matchData.recommendedSize)"
+            } else {
+                self.matchResult = "Error"
+            }
             self.isProcessing = false
         }
     }
