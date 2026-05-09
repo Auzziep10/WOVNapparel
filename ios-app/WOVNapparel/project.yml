@@ -17,8 +17,6 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - package: Firebase
-        product: FirebaseCore
-      - package: Firebase
         product: FirebaseAuth
       - package: Firebase
         product: FirebaseFirestore
