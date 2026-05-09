@@ -1,4 +1,7 @@
 import SwiftUI
+import AVFoundation
+import Vision
+import FirebaseFirestore
 
 struct CameraView: View {
     @StateObject private var cameraManager = CameraManager()
