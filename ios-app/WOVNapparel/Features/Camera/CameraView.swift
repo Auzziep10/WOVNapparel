@@ -4,9 +4,11 @@ struct CameraView: View {
     @StateObject private var cameraManager = CameraManager()
     @State private var isProcessing = false
     @State private var matchResult: String? = nil
+    @State private var skinToneColor: Color? = nil
     
-    // Core logic engine
+    // Core logic engines
     private let sizingEngine = SpatialSizingEngine()
+    private let colorAnalyzer = SpectrophotometricSkinAnalyzer()
     
     var body: some View {
         ZStack {
@@ -50,12 +52,26 @@ struct CameraView: View {
                         Text(result)
                             .font(.system(size: 48, weight: .bold))
                             .foregroundColor(.green)
+                            
+                        if let skinColor = skinToneColor {
+                            HStack {
+                                Circle()
+                                    .fill(skinColor)
+                                    .frame(width: 30, height: 30)
+                                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
+                                Text("High Contrast Winter")
+                                    .font(.subheadline)
+                                    .foregroundColor(.white.opacity(0.9))
+                            }
+                            .padding(.top, 5)
+                        }
                         
                         Button("Retake") {
                             matchResult = nil
+                            skinToneColor = nil
                             cameraManager.capturedImage = nil
                         }
-                        .padding(.top, 10)
+                        .padding(.top, 15)
                         .foregroundColor(.white)
                     }
                     .padding()
@@ -91,11 +107,24 @@ struct CameraView: View {
         
         Task {
             do {
-                // 1. Run local spatial sizing math
-                let userMetrics = try await sizingEngine.resolveUserSizing(userId: "demo_user", actualHeightCm: 180.0, image: image)
+                let uiImage = UIImage(cgImage: image)
+                
+                // 1. Run local spatial sizing & color math CONCURRENTLY
+                async let sizingTask = sizingEngine.resolveUserSizing(userId: "demo_user", actualHeightCm: 180.0, image: image)
+                async let colorTask = colorAnalyzer.extractSkinChromaticProfile(from: uiImage)
+                
+                let (userMetrics, labProfile) = try await (sizingTask, colorTask)
+                
+                DispatchQueue.main.async {
+                    if let lab = labProfile, lab.count >= 3 {
+                        // Very rough mock LAB -> RGB for visual UI scaffold
+                        let l = Double(lab[0]) / 100.0
+                        self.skinToneColor = Color(red: l + 0.1, green: l - 0.1, blue: l - 0.2) 
+                    }
+                }
                 
                 // 2. Fetch Match from Vercel Backend
-                try await fetchVercelMatch(metrics: userMetrics)
+                try await fetchVercelMatch(metrics: userMetrics, skinToneLab: labProfile)
                 
             } catch {
                 print("Sizing Error: \(error)")
@@ -107,9 +136,9 @@ struct CameraView: View {
         }
     }
     
-    private func fetchVercelMatch(metrics: [String: Double]) async throws {
+    private func fetchVercelMatch(metrics: [String: Double], skinToneLab: [Float]?) async throws {
         // Build payload
-        let payload: [String: Any] = [
+        var payload: [String: Any] = [
             "techPackId": "demo_tech_pack", // In a real app, user selects a garment first
             "userMetrics": [
                 "chestCm": metrics["chestCm"] ?? 100.0,
@@ -118,6 +147,10 @@ struct CameraView: View {
                 "chromaticContrastIndex": 40.0
             ]
         ]
+        
+        if let lab = skinToneLab {
+            payload["userSkinToneLab"] = lab
+        }
         
         guard let url = URL(string: "https://wovn-apparel.vercel.app/api/match") else { return }
         var request = URLRequest(url: url)
