@@ -42,33 +42,79 @@ export async function POST(request: Request) {
     const techPack = techPackDoc.data() as {
       baseSize: string;
       name: string;
+      matrices?: {
+        chest: { base: number, grades: Record<string, number> };
+        waist: { base: number, grades: Record<string, number> };
+      };
       measurements: { bustCm: number; waistCm: number; hemCm: number };
       fabricProperties: { stretchCoefficient: number };
       dominantColorways: Array<{ name: string; lab: number[] }>;
     };
 
-    // --- The Geometric Match Index Algorithm ---
-    // Extrapolate 2D flat-lay Tech Pack measurements into 3D garment circumferences
-    const garmentChestCircumference = techPack.measurements.bustCm * 2;
-    const garmentWaistCircumference = techPack.measurements.waistCm * 2;
-    
-    // Calculate volumetric difference incorporating the fabric stretch coefficient
-    const chestDiff = (garmentChestCircumference * techPack.fabricProperties.stretchCoefficient) - userMetrics.chestCm;
-    const waistDiff = (garmentWaistCircumference * techPack.fabricProperties.stretchCoefficient) - userMetrics.waistCm;
+    // --- The Multi-Size Geometric Match Index Algorithm ---
+    let recommendedSize = techPack.baseSize;
+    let confidenceScore = 0;
+    let chestDiff = 0;
+    let waistDiff = 0;
 
-    let recommendedSize = techPack.baseSize; // Default to base size (e.g. "L")
-    let confidenceScore = 95;
+    // Check if the new multi-size matrix data exists
+    if (techPack.matrices && techPack.matrices.chest && Object.keys(techPack.matrices.chest.grades).length > 0) {
+      // Iterative Matrix Matching
+      const grades = techPack.matrices.chest.grades;
+      const waistGrades = techPack.matrices.waist?.grades || {};
+      
+      let bestScore = -9999;
+      
+      for (const [sizeLabel, flatChestWidth] of Object.entries(grades)) {
+        if (!flatChestWidth) continue;
+        
+        // Extrapolate 3D circumference for THIS specific size
+        const garmentChestCirc = flatChestWidth * 2;
+        const currentChestDiff = (garmentChestCirc * techPack.fabricProperties.stretchCoefficient) - userMetrics.chestCm;
+        
+        const flatWaistWidth = waistGrades[sizeLabel] || techPack.measurements.waistCm;
+        const currentWaistDiff = (flatWaistWidth * 2 * techPack.fabricProperties.stretchCoefficient) - userMetrics.waistCm;
 
-    // Positive Ease Logic for a standard T-Shirt:
-    // A t-shirt should typically have 2-8cm of positive ease depending on fit preference.
-    if (chestDiff < 0) {
-      // The garment is physically smaller than the human.
-      recommendedSize = "XL"; // Needs larger
-      confidenceScore = 80;
-    } else if (chestDiff > 15) {
-      // The garment has massive positive ease (very baggy).
-      recommendedSize = "M"; // Needs smaller
-      confidenceScore = 80;
+        // Scoring Algorithm: 
+        // Ideal chest ease for a t-shirt is +4cm to +8cm. 
+        // Negative ease is severely penalized (too small). 
+        // Excessive positive ease is mildly penalized (too baggy).
+        let score = 100;
+        if (currentChestDiff < 0) {
+           score -= Math.abs(currentChestDiff) * 15; // Severe penalty for being too tight
+        } else if (currentChestDiff > 12) {
+           score -= (currentChestDiff - 12) * 5; // Moderate penalty for being too baggy
+        } else {
+           // Perfect ease zone (0 to 12cm)
+           score -= Math.abs(currentChestDiff - 6) * 2; // Peak score around 6cm of ease
+        }
+
+        if (score > bestScore) {
+           bestScore = score;
+           recommendedSize = sizeLabel;
+           confidenceScore = Math.max(0, Math.min(100, Math.round(score)));
+           chestDiff = currentChestDiff;
+           waistDiff = currentWaistDiff;
+        }
+      }
+    } else {
+      // Fallback to legacy single-size logic
+      const garmentChestCircumference = techPack.measurements.bustCm * 2;
+      const garmentWaistCircumference = techPack.measurements.waistCm * 2;
+      
+      chestDiff = (garmentChestCircumference * techPack.fabricProperties.stretchCoefficient) - userMetrics.chestCm;
+      waistDiff = (garmentWaistCircumference * techPack.fabricProperties.stretchCoefficient) - userMetrics.waistCm;
+
+      recommendedSize = techPack.baseSize;
+      confidenceScore = 95;
+
+      if (chestDiff < 0) {
+        recommendedSize = "XL";
+        confidenceScore = 80;
+      } else if (chestDiff > 15) {
+        recommendedSize = "M";
+        confidenceScore = 80;
+      }
     }
 
     // Chromatic Recommendation Logic

@@ -15,16 +15,47 @@ export async function POST(request: Request) {
   try {
     const payload = await request.json();
     
-    // Extract data from the legacy Tech Pack Creator payload
-    // We expect { name, baseSize, bustCm, waistCm, hemCm, renderUrl, labColors }
+    const parseToCm = (val: any, unit: string) => {
+      if (typeof val === 'number') return unit === 'in' ? val * 2.54 : val;
+      if (!val) return 0;
+      const str = String(val).trim();
+      let num = parseFloat(str);
+      let match = str.match(/^(\d+)[\s-]+(\d+)\/(\d+)$/);
+      if (match) num = parseInt(match[1]) + (parseInt(match[2]) / parseInt(match[3]));
+      else {
+        match = str.match(/^(\d+)\/(\d+)$/);
+        if (match) num = parseInt(match[1]) / parseInt(match[2]);
+      }
+      if (isNaN(num)) return 0;
+      return unit === 'in' ? num * 2.54 : num;
+    };
+
+    const processMatrix = (matrix: any, unit: string) => {
+      if (!matrix) return { base: 0, grades: {} };
+      const grades: Record<string, number> = {};
+      for (const [size, val] of Object.entries(matrix.grades || {})) {
+        grades[size] = parseToCm(val, unit);
+      }
+      return { base: parseToCm(matrix.base, unit), grades };
+    };
+
+    const unit = payload.globalUnit || 'cm';
+
     const techPackData = {
       name: payload.name || 'Imported Garment',
       baseSize: payload.baseSize || 'M',
+      matrices: {
+        chest: processMatrix(payload.chestMatrix, unit),
+        waist: processMatrix(payload.waistMatrix, unit),
+        hem: processMatrix(payload.hemMatrix, unit),
+        sleeve: processMatrix(payload.sleeveMatrix, unit)
+      },
+      // Keep legacy structure for backwards compatibility with the page UI
       measurements: {
-        bustCm: payload.bustCm || 0,
-        waistCm: payload.waistCm || 0,
-        hemCm: payload.hemCm || 0,
-        sleeveLengthCm: payload.sleeveLengthCm || 0
+        bustCm: parseToCm(payload.chestMatrix?.base, unit),
+        waistCm: parseToCm(payload.waistMatrix?.base, unit),
+        hemCm: parseToCm(payload.hemMatrix?.base, unit),
+        sleeveLengthCm: parseToCm(payload.sleeveMatrix?.base, unit)
       },
       fabricProperties: {
         stretchCoefficient: payload.stretchCoefficient || 1.0
