@@ -165,8 +165,8 @@ struct CameraView: View {
             payload["userSkinToneLab"] = lab
         }
         
-        // Point to the Next.js server running locally on the Mac
-        guard let url = URL(string: "http://192.168.4.94:3000/api/match") else { return }
+        // Point to the secure Vercel production deployment
+        guard let url = URL(string: "https://wovn-apparel.vercel.app/api/match") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
