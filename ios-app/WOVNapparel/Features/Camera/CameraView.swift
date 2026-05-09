@@ -137,6 +137,16 @@ struct CameraView: View {
     }
     
     private func fetchVercelMatch(metrics: [String: Double], skinToneLab: [Float]?) async throws {
+        // INJECT DEMO TECH PACK INTO FIRESTORE (Fix for 19h-old Vercel Code)
+        let db = Firestore.firestore()
+        try? await db.collection("tech_packs").document("demo_tech_pack").setData([
+            "name": "WOVN Heavyweight Core Hoodie",
+            "baseSize": "M",
+            "measurements": ["bustCm": 105, "waistCm": 95, "hemCm": 92],
+            "fabricProperties": ["stretchCoefficient": 1.1],
+            "dominantColorways": [["name": "Onyx Black", "lab": [15, 0, 0]]]
+        ])
+        
         // Build payload
         var payload: [String: Any] = [
             "techPackId": "demo_tech_pack", // In a real app, user selects a garment first
@@ -152,7 +162,7 @@ struct CameraView: View {
             payload["userSkinToneLab"] = lab
         }
         
-        guard let url = URL(string: "https://wovn-apparel.vercel.app/api/match") else { return }
+        guard let url = URL(string: "https://wovn-apparel-git-main-austins-projects-efff5622.vercel.app/api/match") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
