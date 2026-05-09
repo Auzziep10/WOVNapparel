@@ -47,21 +47,28 @@ export async function POST(request: Request) {
       dominantColorways: Array<{ name: string; lab: number[] }>;
     };
 
-    // The Geometric Match Index Algorithm
+    // --- The Geometric Match Index Algorithm ---
+    // Extrapolate 2D flat-lay Tech Pack measurements into 3D garment circumferences
+    const garmentChestCircumference = techPack.measurements.bustCm * 2;
+    const garmentWaistCircumference = techPack.measurements.waistCm * 2;
+    
     // Calculate volumetric difference incorporating the fabric stretch coefficient
-    const chestDiff = (techPack.measurements.bustCm * techPack.fabricProperties.stretchCoefficient) - userMetrics.chestCm;
-    const waistDiff = (techPack.measurements.waistCm * techPack.fabricProperties.stretchCoefficient) - userMetrics.waistCm;
+    const chestDiff = (garmentChestCircumference * techPack.fabricProperties.stretchCoefficient) - userMetrics.chestCm;
+    const waistDiff = (garmentWaistCircumference * techPack.fabricProperties.stretchCoefficient) - userMetrics.waistCm;
 
-    let recommendedSize = techPack.baseSize; // Default
-    let confidenceScore = 100;
+    let recommendedSize = techPack.baseSize; // Default to base size (e.g. "L")
+    let confidenceScore = 95;
 
-    // Very basic tolerance logic for scaffold
-    if (chestDiff < -5) {
-      recommendedSize = "L"; // Needs larger
-      confidenceScore = 85;
-    } else if (chestDiff > 10) {
-      recommendedSize = "S"; // Needs smaller
-      confidenceScore = 85;
+    // Positive Ease Logic for a standard T-Shirt:
+    // A t-shirt should typically have 2-8cm of positive ease depending on fit preference.
+    if (chestDiff < 0) {
+      // The garment is physically smaller than the human.
+      recommendedSize = "XL"; // Needs larger
+      confidenceScore = 80;
+    } else if (chestDiff > 15) {
+      // The garment has massive positive ease (very baggy).
+      recommendedSize = "M"; // Needs smaller
+      confidenceScore = 80;
     }
 
     // Chromatic Recommendation Logic
