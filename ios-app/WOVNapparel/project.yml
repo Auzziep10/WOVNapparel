@@ -15,8 +15,9 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         GENERATE_INFOPLIST_FILE: YES
-        DEVELOPMENT_ASSET_PATHS: '"App/Preview Content"'
     dependencies:
+      - package: Firebase
+        product: FirebaseCore
       - package: Firebase
         product: FirebaseAuth
       - package: Firebase
