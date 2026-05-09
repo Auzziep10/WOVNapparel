@@ -1,5 +1,6 @@
 import { db } from '@/lib/firebase';
 import Image from 'next/image';
+import DeleteButton from '@/components/DeleteButton';
 
 export const revalidate = 0; // Force dynamic to always show the latest syncs
 
@@ -63,6 +64,9 @@ export default async function Dashboard() {
               >
                 {/* Image Container */}
                 <div className="aspect-[4/5] w-full relative bg-zinc-950 overflow-hidden">
+                  
+                  <DeleteButton id={pack.id} />
+
                   {pack.renderUrl ? (
                     <img 
                       src={pack.renderUrl} 
