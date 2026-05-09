@@ -9,6 +9,7 @@ interface MatchRequest {
     chromaticContrastIndex: number;
   };
   techPackId: string;
+  userSkinToneLab?: number[];
 }
 
 export async function POST(request: Request) {
@@ -21,7 +22,18 @@ export async function POST(request: Request) {
     }
 
     // Query live Firestore for the Tech Pack
-    const techPackDoc = await db.collection('tech_packs').doc(techPackId).get();
+    let techPackDoc;
+    
+    if (techPackId === 'demo_tech_pack') {
+        // Grab the most recently synced Tech Pack from Phase 6
+        const latestQuery = await db.collection('tech_packs').orderBy('importedAt', 'desc').limit(1).get();
+        if (latestQuery.empty) {
+             return NextResponse.json({ success: false, error: 'No synced tech packs found. Please sync one first.' }, { status: 404 });
+        }
+        techPackDoc = latestQuery.docs[0];
+    } else {
+        techPackDoc = await db.collection('tech_packs').doc(techPackId).get();
+    }
     
     if (!techPackDoc.exists) {
         return NextResponse.json({ success: false, error: 'Tech pack not found' }, { status: 404 });
@@ -29,6 +41,7 @@ export async function POST(request: Request) {
     
     const techPack = techPackDoc.data() as {
       baseSize: string;
+      name: string;
       measurements: { bustCm: number; waistCm: number; hemCm: number };
       fabricProperties: { stretchCoefficient: number };
       dominantColorways: Array<{ name: string; lab: number[] }>;
