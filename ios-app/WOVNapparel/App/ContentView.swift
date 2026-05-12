@@ -11,10 +11,10 @@ struct ContentView: View {
             case .dashboard:
                 OccasionDashboard()
             case .lidarCaptureFlow:
-                if #available(iOS 14.0, *) {
+                if #available(iOS 17.0, *) {
                     ARScannerView()
                 } else {
-                    Text("LiDAR requires iOS 14+")
+                    Text("3D Scanning requires iOS 17+")
                 }
             case .standardCaptureFlow:
                 CameraView()
