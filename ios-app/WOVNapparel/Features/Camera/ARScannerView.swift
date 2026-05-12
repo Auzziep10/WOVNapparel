@@ -40,7 +40,7 @@ struct ARScannerView: View {
             }
             .preferredColorScheme(.light)
         } else {
-            GarmentScannerView { url in
+            BodyScannerView { url in
                 self.scanUrl = url
             }
             .preferredColorScheme(.dark) // ObjectCaptureView forces dark UI natively
