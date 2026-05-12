@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum AppRoute {
+enum AppRoute: Equatable {
     case onboarding
     case dashboard
     case captureFlow
