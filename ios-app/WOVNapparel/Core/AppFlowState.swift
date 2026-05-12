@@ -3,7 +3,8 @@ import SwiftUI
 enum AppRoute: Equatable {
     case onboarding
     case dashboard
-    case captureFlow
+    case lidarCaptureFlow
+    case standardCaptureFlow
     case tryOn(techPackId: String)
 }
 

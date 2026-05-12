@@ -4,26 +4,49 @@ struct ProfileSetupView: View {
     @EnvironmentObject var appState: AppFlowState
     @State private var showHardwareSelector = false
     @State private var showIdentityCapture = false
+    @AppStorage("userHeightInput") private var userHeightInput: String = ""
     
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
             
-            VStack(spacing: 40) {
-                VStack(spacing: 12) {
+            VStack(spacing: 30) {
+                VStack(spacing: 8) {
                     Text("WOVN Profile")
                         .font(.system(size: 36, weight: .black, design: .rounded))
-                        .foregroundStyle(
-                            LinearGradient(colors: [.white, .gray], startPoint: .top, endPoint: .bottom)
-                        )
+                        .foregroundColor(.primary)
                     
                     Text("Capture your identity and spatial body metrics to generate hyper-realistic virtual try-ons.")
                         .font(.subheadline)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 30)
                 }
-                .padding(.top, 40)
+                .padding(.top, 20)
+                
+                // Basic Info Input
+                VStack(spacing: 12) {
+                    TextField("Full Name", text: $appState.userName)
+                        .padding()
+                        .background(Color(uiColor: .secondarySystemGroupedBackground))
+                        .cornerRadius(12)
+                        .foregroundColor(.primary)
+                        .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
+                    
+                    HStack {
+                        TextField("Height (e.g. 5'10\" or 178)", text: $userHeightInput)
+                            .padding()
+                            .background(Color(uiColor: .secondarySystemGroupedBackground))
+                            .cornerRadius(12)
+                            .foregroundColor(.primary)
+                            .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
+                        
+                        Text("in/cm")
+                            .foregroundColor(.secondary)
+                            .padding(.trailing, 10)
+                    }
+                }
+                .padding(.horizontal, 24)
                 
                 VStack(spacing: 20) {
                     // Step 1: Identity Capture
@@ -33,32 +56,29 @@ struct ProfileSetupView: View {
                         HStack(spacing: 16) {
                             ZStack {
                                 Circle()
-                                    .fill(Color.white.opacity(0.1))
+                                    .fill(Color.blue.opacity(0.1))
                                     .frame(width: 50, height: 50)
                                 Image(systemName: "face.dashed")
                                     .font(.title3)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.blue)
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Step 1: Visual Identity")
                                     .font(.headline)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.primary)
                                 Text("Face, profile, & full body photo")
                                     .font(.caption)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondary)
                             }
                             Spacer()
                             Image(systemName: "chevron.right")
-                                .foregroundColor(.gray)
+                                .foregroundColor(Color(uiColor: .tertiaryLabel))
                         }
                         .padding()
-                        .background(Color.zinc800)
+                        .background(Color(uiColor: .secondarySystemGroupedBackground))
                         .cornerRadius(20)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                        )
+                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
                     }
                     
                     // Step 2: Spatial Body Capture
@@ -78,22 +98,19 @@ struct ProfileSetupView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Step 2: 3D Body Metrics")
                                     .font(.headline)
-                                    .foregroundColor(.white)
+                                    .foregroundColor(.primary)
                                 Text("Extract your millimeter measurements")
                                     .font(.caption)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(.secondary)
                             }
                             Spacer()
                             Image(systemName: "chevron.right")
-                                .foregroundColor(.gray)
+                                .foregroundColor(Color(uiColor: .tertiaryLabel))
                         }
                         .padding()
-                        .background(Color.zinc800)
+                        .background(Color(uiColor: .secondarySystemGroupedBackground))
                         .cornerRadius(20)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                        )
+                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
                     }
                 }
                 .padding(.horizontal, 24)
@@ -101,14 +118,13 @@ struct ProfileSetupView: View {
                 Spacer()
             }
         }
+        .preferredColorScheme(.light)
         .confirmationDialog("Select Capture Hardware", isPresented: $showHardwareSelector, titleVisibility: .visible) {
             Button("iPhone Pro (LiDAR Scan)") {
-                // Route to LiDAR Flow
-                appState.currentRoute = .captureFlow
+                appState.currentRoute = .lidarCaptureFlow
             }
             Button("Standard iPhone (2D Photo)") {
-                // Route to 2D Vision Flow
-                print("Routing to 2D Body Metrics Flow...")
+                appState.currentRoute = .standardCaptureFlow
             }
             Button("Cancel", role: .cancel) {}
         } message: {

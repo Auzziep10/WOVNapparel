@@ -4,16 +4,22 @@ struct OccasionDashboard: View {
     @EnvironmentObject var appState: AppFlowState
     
     var body: some View {
-        VStack {
-            Text("Occasions")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+        ZStack {
+            Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
             
-            Text("Select an occasion to browse curated tech packs.")
-                .foregroundColor(.secondary)
-            
-            Spacer()
+            VStack {
+                Text("Occasions")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+                
+                Text("Select an occasion to browse curated tech packs.")
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+            }
+            .padding()
         }
-        .padding()
+        .preferredColorScheme(.light)
     }
 }

@@ -6,7 +6,7 @@ struct IdentityCaptureView: View {
     
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
             
             VStack(spacing: 30) {
                 HStack {
@@ -15,10 +15,11 @@ struct IdentityCaptureView: View {
                     }) {
                         Image(systemName: "xmark")
                             .font(.title3)
-                            .foregroundColor(.white)
+                            .foregroundColor(.secondary)
                             .padding()
-                            .background(Color.white.opacity(0.1))
+                            .background(Color(uiColor: .secondarySystemGroupedBackground))
                             .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
                     }
                     Spacer()
                 }
@@ -27,10 +28,10 @@ struct IdentityCaptureView: View {
                 Text("Identity Capture")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                 
                 Text("For Gemini to generate a hyper-realistic Virtual Try-On, we need high-resolution reference photos of your face and full body.")
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 30)
                 
@@ -48,16 +49,18 @@ struct IdentityCaptureView: View {
                 }) {
                     Text("Start Camera")
                         .font(.headline)
-                        .foregroundColor(.black)
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.white)
+                        .background(Color.blue)
                         .cornerRadius(16)
+                        .shadow(color: .blue.opacity(0.3), radius: 10, y: 5)
                 }
                 .padding(.horizontal, 30)
                 .padding(.bottom, 20)
             }
         }
+        .preferredColorScheme(.light)
     }
 }
 
@@ -70,27 +73,28 @@ struct CaptureStepRow: View {
         HStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(Color.white.opacity(0.1))
+                    .fill(Color.blue.opacity(0.1))
                     .frame(width: 50, height: 50)
                 Image(systemName: icon)
                     .font(.title3)
-                    .foregroundColor(.white)
+                    .foregroundColor(.blue)
             }
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(.primary)
                 Text(description)
                     .font(.caption)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
             }
             Spacer()
             Image(systemName: "circle")
-                .foregroundColor(.gray)
+                .foregroundColor(Color(uiColor: .tertiaryLabel))
         }
         .padding()
-        .background(Color.zinc800)
+        .background(Color(uiColor: .secondarySystemGroupedBackground))
         .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
     }
 }
