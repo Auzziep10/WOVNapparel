@@ -43,86 +43,109 @@ public struct BodyScannerView: View {
                         .edgesIgnoringSafeArea(.all)
                 }
                 
-                // UI Overlay
+                // Top Bar (Logo)
                 VStack {
-                    if case .capturing = session.state {
-                        HStack(spacing: 20) {
-                            Spacer()
-                            
-                            if session.userCompletedScanPass {
-                                Button(action: {
-                                    if !session.isPaused { session.pause() }
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-                                        session.beginNewScanPassAfterFlip()
-                                    }
-                                }) {
-                                    Image(systemName: "arrow.triangle.2.circlepath")
-                                        .font(.title2).foregroundColor(.orange)
-                                        .frame(width: 50, height: 50)
-                                        .background(.ultraThinMaterial).clipShape(Circle())
-                                }
-                            } else {
-                                Button(action: { session.pause() }) {
-                                    Image(systemName: "pause.fill")
-                                        .font(.title2).foregroundColor(session.isPaused ? .gray : .yellow)
-                                        .frame(width: 50, height: 50)
-                                        .background(.ultraThinMaterial).clipShape(Circle())
-                                }
-                                .disabled(session.isPaused)
-                            }
-                            
-                            Button(action: { session.finish() }) {
-                                Image(systemName: "checkmark")
-                                    .font(.title2).foregroundColor(.green)
-                                    .frame(width: 50, height: 50)
-                                    .background(.ultraThinMaterial).clipShape(Circle())
-                            }
-                        }
-                        .padding(.top, 60)
-                        .padding(.trailing, 20)
+                    HStack {
+                        Spacer()
+                        Text("WOVN")
+                            .font(.system(size: 28, weight: .light, design: .default))
+                            .tracking(3)
+                            .foregroundColor(.white)
+                            .padding(.top, 20)
+                        Spacer()
                     }
                     Spacer()
+                }
+                
+                // Bottom Controls
+                VStack {
+                    Spacer()
                     
-                    // Bottom Controls
                     if case .initializing = session.state {
-                        VStack {
-                            ProgressView().scaleEffect(1.5).padding()
-                            Text("Warming up LiDAR...").foregroundColor(.white)
-                        }.padding().background(Color.black.opacity(0.7)).cornerRadius(20)
-                        
+                        ProgressView()
+                            .colorInvert()
+                            .padding()
+                            .background(Color.white.opacity(0.2))
+                            .clipShape(Circle())
                     } else if case .ready = session.state {
-                        Button(action: { session.startCapturing() }) {
-                            Text("Start Scanning")
-                                .font(.headline).foregroundColor(.white)
-                                .padding(.horizontal, 40).padding(.vertical, 16)
-                                .background(Color.blue).clipShape(Capsule())
+                        Button(action: { session.startDetecting() }) {
+                            Text("SETUP BOX")
+                                .font(.system(size: 14, weight: .bold))
+                                .tracking(2)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 40)
+                                .frame(height: 56)
+                                .background(.ultraThinMaterial)
+                                .environment(\.colorScheme, .dark)
+                                .overlay(
+                                    Capsule().stroke(Color.white.opacity(0.4), lineWidth: 1)
+                                )
+                                .clipShape(Capsule())
                         }
-                    } else if case .completed = session.state {
-                        Color.clear.task {
-                            isProcessing = true
-                            guard let imagesDir = captureDirectory else {
-                                onComplete(nil)
-                                return
-                            }
-                            processPhotogrammetry(imagesDir: imagesDir)
+                    } else if case .detecting = session.state {
+                        Button(action: { session.startCapturing() }) {
+                            Text("START SCAN")
+                                .font(.system(size: 14, weight: .bold))
+                                .tracking(2)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 40)
+                                .frame(height: 56)
+                                .background(.ultraThinMaterial)
+                                .environment(\.colorScheme, .dark)
+                                .overlay(
+                                    Capsule().stroke(Color.white.opacity(0.4), lineWidth: 1)
+                                )
+                                .clipShape(Capsule())
+                        }
+                    } else if case .capturing = session.state {
+                        Button(action: { session.finish() }) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 32, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(width: 72, height: 72)
+                                .background(Color(red: 1.0, green: 0.23, blue: 0.19)) // #ff3b30
+                                .clipShape(Circle())
                         }
                     }
                 }.padding(.bottom, 50)
                 
             } else {
                 // Processing View
-                VStack(spacing: 20) {
-                    ProgressView().scaleEffect(2.0)
-                    Text("Building Photorealistic 3D Model...")
-                        .font(.headline)
-                    Text("This uses the select_fit memory-optimized engine.")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                    Text("\(Int(progress * 100))%")
+                ZStack {
+                    Color.black.opacity(0.85).ignoresSafeArea()
+                    
+                    VStack(spacing: 20) {
+                        if progress > 0 {
+                            GeometryReader { geometry in
+                                ZStack(alignment: .leading) {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.white.opacity(0.2))
+                                        .frame(height: 8)
+                                    
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.white)
+                                        .frame(width: max(geometry.size.width * 0.05, geometry.size.width * progress), height: 8)
+                                }
+                            }
+                            .frame(width: UIScreen.main.bounds.width * 0.7, height: 8)
+                        } else {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                                .colorInvert()
+                        }
+                        
+                        Text(progress > 0 ? "Processing 3D Model... \(Int(progress * 100))%" : "Preparing Photogrammetry...")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.top, 10)
+                        
+                        Text("This may take a few minutes depending on the device.")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(white: 0.66)) // #aaa
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
+                    }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.black.ignoresSafeArea())
-                .foregroundColor(.white)
             }
         }
         .onAppear {
@@ -141,6 +164,27 @@ public struct BodyScannerView: View {
         self.captureDirectory = dir
         
         var config = ObjectCaptureSession.Configuration()
+        
+        // Listen to state updates to trigger processing safely (prevents GPU background crash)
+        Task {
+            for await state in session.stateUpdates {
+                if case .completed = state {
+                    DispatchQueue.main.async {
+                        self.isProcessing = true
+                        if let imagesDir = self.captureDirectory {
+                            self.processPhotogrammetry(imagesDir: imagesDir)
+                        } else {
+                            self.onComplete(nil)
+                        }
+                    }
+                } else if case .failed(let error) = state {
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Capture failed: \(error.localizedDescription)"
+                    }
+                }
+            }
+        }
+        
         session.start(imagesDirectory: dir, configuration: config)
     }
     

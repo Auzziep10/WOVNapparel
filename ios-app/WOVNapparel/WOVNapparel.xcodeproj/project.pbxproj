@@ -12,7 +12,7 @@
 		1F2F6B2CEE013151D8B7CFE2 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3B4D64B80E17CE6629E84B /* CameraManager.swift */; };
 		24105CC3F575672FFF9D889F /* ARScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85BE6BF4ED35C44272358267 /* ARScannerView.swift */; };
 		4AC5CC6CE66DA5C483F3AC08 /* WOVNapparelApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95974DC5BA0476C873E8AC8 /* WOVNapparelApp.swift */; };
-		65395A4AC0E3E7299C6FB816 /* ObjectCaptureHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A159514EE492B4F5E966C13 /* ObjectCaptureHandler.swift */; };
+		74274AA3CF953E22067CAFA2 /* BodyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E238E9D541BDD3E39CADE29 /* BodyScannerView.swift */; };
 		74518C85D8180B67C845037A /* LiDARSizingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF445875DF6CCC6D9C8D09E7 /* LiDARSizingEngine.swift */; };
 		7F02DFCB7BF72E70F1C8459C /* CameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D8E1E248DC72091BF38EDAD /* CameraPreview.swift */; };
 		81E93B45CA073916A4B00C88 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DBCCEBC8C27F237F8BBD0CC3 /* FirebaseAuth */; };
@@ -29,8 +29,8 @@
 /* Begin PBXFileReference section */
 		4F75C4DC3F7091F292F8B52A /* WOVNapparel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WOVNapparel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B26CE6D5049EDB66C973417 /* AppFlowState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFlowState.swift; sourceTree = "<group>"; };
-		6A159514EE492B4F5E966C13 /* ObjectCaptureHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectCaptureHandler.swift; sourceTree = "<group>"; };
 		6D8E1E248DC72091BF38EDAD /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
+		6E238E9D541BDD3E39CADE29 /* BodyScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyScannerView.swift; sourceTree = "<group>"; };
 		72053D9BDA4CF355BC812687 /* ProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupView.swift; sourceTree = "<group>"; };
 		85BE6BF4ED35C44272358267 /* ARScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARScannerView.swift; sourceTree = "<group>"; };
 		85F5B849B35BAB8EFC222E48 /* OccasionDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OccasionDashboard.swift; sourceTree = "<group>"; };
@@ -126,8 +126,8 @@
 		D2C60B637DA5727B38775101 /* Sizing */ = {
 			isa = PBXGroup;
 			children = (
+				6E238E9D541BDD3E39CADE29 /* BodyScannerView.swift */,
 				BF445875DF6CCC6D9C8D09E7 /* LiDARSizingEngine.swift */,
-				6A159514EE492B4F5E966C13 /* ObjectCaptureHandler.swift */,
 				A70908705E6BBEF247C7A4E1 /* SpatialSizingEngine.swift */,
 			);
 			path = Sizing;
@@ -213,13 +213,13 @@
 			files = (
 				24105CC3F575672FFF9D889F /* ARScannerView.swift in Sources */,
 				EA88532B9E5AC00551B6AD3E /* AppFlowState.swift in Sources */,
+				74274AA3CF953E22067CAFA2 /* BodyScannerView.swift in Sources */,
 				1F2F6B2CEE013151D8B7CFE2 /* CameraManager.swift in Sources */,
 				7F02DFCB7BF72E70F1C8459C /* CameraPreview.swift in Sources */,
 				9E9AC7D08190464FFC158EFA /* CameraView.swift in Sources */,
 				90E3FC20E77189E5992E5812 /* ContentView.swift in Sources */,
 				0FAF70CD1EBB1787B6A630EA /* IdentityCaptureView.swift in Sources */,
 				74518C85D8180B67C845037A /* LiDARSizingEngine.swift in Sources */,
-				65395A4AC0E3E7299C6FB816 /* ObjectCaptureHandler.swift in Sources */,
 				94DBDAAA23474F86EFAC394D /* OccasionDashboard.swift in Sources */,
 				B35F65E2C801C872CBD94C5F /* ProfileSetupView.swift in Sources */,
 				BD5D343A2793744D249E21FF /* SpatialSizingEngine.swift in Sources */,
