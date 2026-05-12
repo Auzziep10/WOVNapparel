@@ -10,9 +10,12 @@ struct WOVNapparelApp: App {
         // FirebaseApp.configure()
     }
     
+    @StateObject private var appState = AppFlowState()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(appState)
         }
     }
 }

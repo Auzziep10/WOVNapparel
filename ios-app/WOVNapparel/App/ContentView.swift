@@ -1,37 +1,22 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var appState: AppFlowState
+    
     var body: some View {
-        NavigationStack {
-            VStack {
-                Image(systemName: "cube.transparent")
-                    .imageScale(.large)
-                    .font(.system(size: 60))
-                    .foregroundStyle(.tint)
-                    .padding(.bottom, 20)
-                
-                Text("WOVN apparel")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                
-                Text("Spatial Sizing Engine Ready")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding(.bottom, 50)
-                
-                NavigationLink(destination: CameraView()) {
-                    Text("Initialize 3D Scan")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(12)
-                }
-                .padding(.horizontal, 40)
+        Group {
+            switch appState.currentRoute {
+            case .onboarding:
+                ProfileSetupView()
+            case .dashboard:
+                OccasionDashboard()
+            case .captureFlow:
+                CameraView()
+            case .tryOn(let techPackId):
+                Text("Try-On View for \(techPackId)")
             }
-            .padding()
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.currentRoute)
     }
 }
 

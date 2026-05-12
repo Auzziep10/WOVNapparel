@@ -112,11 +112,15 @@ struct CameraView: View {
             do {
                 let uiImage = UIImage(cgImage: image)
                 
-                // 1. Run local spatial sizing & color math CONCURRENTLY
-                async let sizingTask = sizingEngine.resolveUserSizing(userId: "demo_user", actualHeightCm: 180.0, image: image)
-                async let colorTask = colorAnalyzer.extractSkinChromaticProfile(from: uiImage)
+                // 1. Run local spatial sizing & color math safely
+                var userMetrics = [String: Double]()
+                do {
+                    userMetrics = try await sizingEngine.resolveUserSizing(userId: "demo_user", actualHeightCm: 180.0, image: image)
+                } catch {
+                    print("Skeletal Tracking Failed - using fallback defaults: \(error)")
+                }
                 
-                let (userMetrics, labProfile) = try await (sizingTask, colorTask)
+                let labProfile = try? await colorAnalyzer.extractSkinChromaticProfile(from: uiImage)
                 
                 DispatchQueue.main.async {
                     if let lab = labProfile, lab.count >= 3 {
@@ -132,7 +136,7 @@ struct CameraView: View {
             } catch {
                 print("Sizing Error: \(error)")
                 DispatchQueue.main.async {
-                    self.matchResult = "Error"
+                    self.matchResult = error.localizedDescription
                     self.isProcessing = false
                 }
             }
@@ -140,16 +144,6 @@ struct CameraView: View {
     }
     
     private func fetchVercelMatch(metrics: [String: Double], skinToneLab: [Float]?) async throws {
-        // INJECT DEMO TECH PACK INTO FIRESTORE (Fix for 19h-old Vercel Code)
-        let db = Firestore.firestore()
-        try? await db.collection("tech_packs").document("demo_tech_pack").setData([
-            "name": "WOVN Heavyweight Core Hoodie",
-            "baseSize": "M",
-            "measurements": ["bustCm": 105, "waistCm": 95, "hemCm": 92],
-            "fabricProperties": ["stretchCoefficient": 1.1],
-            "dominantColorways": [["name": "Onyx Black", "lab": [15, 0, 0]]]
-        ])
-        
         // Build payload
         var payload: [String: Any] = [
             "techPackId": "demo_tech_pack", // In a real app, user selects a garment first
@@ -177,9 +171,9 @@ struct CameraView: View {
         
         DispatchQueue.main.async {
             if response.success, let matchData = response.data {
-                self.matchResult = "Size \(matchData.recommendedSize)"
+                self.matchResult = "Size \(matchData.recommendedSize ?? "Unknown")"
             } else {
-                self.matchResult = "Error"
+                self.matchResult = response.error ?? "Match Error"
             }
             self.isProcessing = false
         }
@@ -190,10 +184,11 @@ struct CameraView: View {
 struct MatchResponse: Codable {
     let success: Bool
     let data: MatchData?
+    let error: String?
 }
 
 struct MatchData: Codable {
-    let recommendedSize: String
-    let confidenceScore: Int
-    let recommendedColorway: String
+    let recommendedSize: String?
+    let confidenceScore: Double?
+    let recommendedColorway: String?
 }
