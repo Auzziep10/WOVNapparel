@@ -21,7 +21,11 @@ struct ContentView: View {
             case .profileReview:
                 ProfileDashboardView()
             case .occasionSelection:
-                OccasionSelectionView()
+                if #available(iOS 17.0, *) {
+                    OccasionSelectionView()
+                } else {
+                    Text("Occasion Selection requires iOS 17")
+                }
             case .tryOn(let techPackId):
                 Text("Try-On View for \(techPackId)")
             }

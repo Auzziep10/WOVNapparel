@@ -29,7 +29,8 @@ struct ARScannerView: View {
                     .padding()
                 
                 Button("Continue") {
-                    appState.currentRoute = .dashboard
+                    appState.scannedModelURL = url
+                    appState.currentRoute = .profileReview
                 }
                 .padding()
                 .frame(maxWidth: .infinity)

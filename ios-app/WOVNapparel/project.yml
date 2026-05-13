@@ -2,7 +2,7 @@ name: WOVNapparel
 options:
   bundleIdPrefix: com.wovn
   deploymentTarget:
-    iOS: 16.0
+    iOS: 17.0
 targets:
   WOVNapparel:
     type: application
