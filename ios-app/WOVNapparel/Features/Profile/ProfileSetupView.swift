@@ -6,78 +6,82 @@ struct ProfileSetupView: View {
     
     var body: some View {
         ZStack {
-            // Sleek animated background to make the glass visible
-            Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
+            // Minimalist Garment Catalog Background (#f4f4f5)
+            Color(red: 244/255, green: 244/255, blue: 245/255).ignoresSafeArea()
             
-            GeometryReader { proxy in
-                Circle()
-                    .fill(LinearGradient(colors: [.blue.opacity(0.3), .purple.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .frame(width: proxy.size.width * 1.5)
-                    .blur(radius: 60)
-                    .offset(x: -proxy.size.width * 0.2, y: -proxy.size.height * 0.2)
-            }
-            .ignoresSafeArea()
-            
-            VStack(spacing: 30) {
-                VStack(spacing: 8) {
+            VStack(spacing: 40) {
+                VStack(spacing: 16) {
                     Text("WOVN Profile")
-                        .font(.system(size: 36, weight: .black, design: .rounded))
-                        .foregroundColor(.primary)
+                        // Playfair Display aesthetic
+                        .font(.system(size: 48, weight: .regular, design: .serif))
+                        .foregroundColor(Color.zinc900)
                     
                     Text("Capture your identity and spatial body metrics to generate hyper-realistic virtual try-ons.")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(Color.zinc500)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 30)
+                        .padding(.horizontal, 40)
+                        .lineSpacing(4)
                 }
-                .padding(.top, 40)
+                .padding(.top, 60)
                 
-                // Basic Info Input (Liquid Glass)
-                VStack(spacing: 16) {
-                    TextField("Full Name", text: $appState.userName)
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(16)
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.5), lineWidth: 1))
-                        .foregroundColor(.primary)
-                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
-                    
-                    HStack {
-                        TextField("Height (e.g. 5'10\" or 178)", text: $userHeightInput)
-                            .padding()
-                            .background(.ultraThinMaterial)
-                            .cornerRadius(16)
-                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.5), lineWidth: 1))
-                            .foregroundColor(.primary)
-                            .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
+                // Minimalist Input Fields
+                VStack(spacing: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("FULL NAME")
+                            .font(.system(size: 10, weight: .semibold))
+                            .tracking(1.5)
+                            .foregroundColor(Color.zinc500)
                         
-                        Text("in/cm")
-                            .foregroundColor(.secondary)
-                            .padding(.trailing, 10)
+                        TextField("", text: $appState.userName)
+                            .padding()
+                            .background(Color.white)
+                            .border(Color.zinc200, width: 1)
+                            .foregroundColor(Color.zinc900)
+                            .accentColor(Color.zinc900)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("HEIGHT")
+                            .font(.system(size: 10, weight: .semibold))
+                            .tracking(1.5)
+                            .foregroundColor(Color.zinc500)
+                        
+                        HStack(spacing: 0) {
+                            TextField("e.g. 5'10\" or 178", text: $userHeightInput)
+                                .padding()
+                                .foregroundColor(Color.zinc900)
+                                .accentColor(Color.zinc900)
+                            
+                            Text("in/cm")
+                                .font(.system(size: 12))
+                                .foregroundColor(Color.zinc400)
+                                .padding(.trailing, 16)
+                        }
+                        .background(Color.white)
+                        .border(Color.zinc200, width: 1)
                     }
                 }
                 .padding(.horizontal, 24)
                 
                 Spacer()
                 
-                // Next Step (Liquid Glass)
+                // Minimalist Button
                 Button(action: {
                     withAnimation {
                         appState.currentRoute = .onboardingPhotos
                     }
                 }) {
-                    Text("Next: Visual Identity")
-                        .font(.headline)
-                        .foregroundColor(appState.userName.isEmpty || userHeightInput.isEmpty ? .secondary : .primary)
+                    Text("NEXT: VISUAL IDENTITY")
+                        .font(.system(size: 12, weight: .semibold))
+                        .tracking(2)
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(20)
-                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.8), lineWidth: 1))
-                        .shadow(color: .black.opacity(0.05), radius: 15, y: 5)
+                        .padding(.vertical, 18)
+                        .background(appState.userName.isEmpty || userHeightInput.isEmpty ? Color.zinc300 : Color.zinc900)
                 }
                 .disabled(appState.userName.isEmpty || userHeightInput.isEmpty)
-                .padding(.horizontal, 30)
+                .padding(.horizontal, 24)
                 .padding(.bottom, 40)
             }
         }
@@ -86,5 +90,10 @@ struct ProfileSetupView: View {
 }
 
 extension Color {
+    static let zinc900 = Color(red: 24/255, green: 24/255, blue: 27/255)
     static let zinc800 = Color(red: 39/255, green: 39/255, blue: 42/255)
+    static let zinc500 = Color(red: 113/255, green: 113/255, blue: 122/255)
+    static let zinc400 = Color(red: 161/255, green: 161/255, blue: 170/255)
+    static let zinc300 = Color(red: 212/255, green: 212/255, blue: 216/255)
+    static let zinc200 = Color(red: 228/255, green: 228/255, blue: 231/255)
 }
