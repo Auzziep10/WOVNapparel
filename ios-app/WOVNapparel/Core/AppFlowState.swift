@@ -1,7 +1,8 @@
 import SwiftUI
 
 enum AppRoute: Equatable {
-    case onboarding
+    case onboardingBasic
+    case onboardingPhotos
     case dashboard
     case lidarCaptureFlow
     case standardCaptureFlow
@@ -9,7 +10,7 @@ enum AppRoute: Equatable {
 }
 
 class AppFlowState: ObservableObject {
-    @Published var currentRoute: AppRoute = .onboarding
+    @Published var currentRoute: AppRoute = .onboardingBasic
     
     // We will sync this with Firestore shortly
     @Published var hasProfile: Bool = false

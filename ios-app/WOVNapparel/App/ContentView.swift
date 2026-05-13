@@ -6,8 +6,10 @@ struct ContentView: View {
     var body: some View {
         Group {
             switch appState.currentRoute {
-            case .onboarding:
+            case .onboardingBasic:
                 ProfileSetupView()
+            case .onboardingPhotos:
+                IdentityCaptureView()
             case .dashboard:
                 OccasionDashboard()
             case .lidarCaptureFlow:

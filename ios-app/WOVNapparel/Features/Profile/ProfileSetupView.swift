@@ -2,8 +2,6 @@ import SwiftUI
 
 struct ProfileSetupView: View {
     @EnvironmentObject var appState: AppFlowState
-    @State private var showHardwareSelector = false
-    @State private var showIdentityCapture = false
     @AppStorage("userHeightInput") private var userHeightInput: String = ""
     
     var body: some View {
@@ -22,10 +20,10 @@ struct ProfileSetupView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 30)
                 }
-                .padding(.top, 20)
+                .padding(.top, 40)
                 
                 // Basic Info Input
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     TextField("Full Name", text: $appState.userName)
                         .padding()
                         .background(Color(uiColor: .secondarySystemGroupedBackground))
@@ -48,91 +46,29 @@ struct ProfileSetupView: View {
                 }
                 .padding(.horizontal, 24)
                 
-                VStack(spacing: 20) {
-                    // Step 1: Identity Capture
-                    Button(action: {
-                        showIdentityCapture = true
-                    }) {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.blue.opacity(0.1))
-                                    .frame(width: 50, height: 50)
-                                Image(systemName: "face.dashed")
-                                    .font(.title3)
-                                    .foregroundColor(.blue)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Step 1: Visual Identity")
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
-                                Text("Face, profile, & full body photo")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(Color(uiColor: .tertiaryLabel))
-                        }
-                        .padding()
-                        .background(Color(uiColor: .secondarySystemGroupedBackground))
-                        .cornerRadius(20)
-                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
-                    }
-                    
-                    // Step 2: Spatial Body Capture
-                    Button(action: {
-                        showHardwareSelector = true
-                    }) {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                    .frame(width: 50, height: 50)
-                                Image(systemName: "viewfinder")
-                                    .font(.title3)
-                                    .foregroundColor(.white)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Step 2: 3D Body Metrics")
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
-                                Text("Extract your millimeter measurements")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(Color(uiColor: .tertiaryLabel))
-                        }
-                        .padding()
-                        .background(Color(uiColor: .secondarySystemGroupedBackground))
-                        .cornerRadius(20)
-                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
-                    }
-                }
-                .padding(.horizontal, 24)
-                
                 Spacer()
+                
+                // Next Step
+                Button(action: {
+                    withAnimation {
+                        appState.currentRoute = .onboardingPhotos
+                    }
+                }) {
+                    Text("Next: Visual Identity")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(appState.userName.isEmpty || userHeightInput.isEmpty ? Color.blue.opacity(0.5) : Color.blue)
+                        .cornerRadius(16)
+                        .shadow(color: .blue.opacity(0.3), radius: 10, y: 5)
+                }
+                .disabled(appState.userName.isEmpty || userHeightInput.isEmpty)
+                .padding(.horizontal, 30)
+                .padding(.bottom, 40)
             }
         }
         .preferredColorScheme(.light)
-        .confirmationDialog("Select Capture Hardware", isPresented: $showHardwareSelector, titleVisibility: .visible) {
-            Button("iPhone Pro (LiDAR Scan)") {
-                appState.currentRoute = .lidarCaptureFlow
-            }
-            Button("Standard iPhone (2D Photo)") {
-                appState.currentRoute = .standardCaptureFlow
-            }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("LiDAR offers millimeter precision. If you don't have an iPhone Pro, our 2D AI can estimate your dimensions.")
-        }
-        .fullScreenCover(isPresented: $showIdentityCapture) {
-            IdentityCaptureView()
-        }
     }
 }
 
