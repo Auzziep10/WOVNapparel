@@ -3,10 +3,6 @@ import SwiftUI
 struct IdentityCaptureView: View {
     @EnvironmentObject var appState: AppFlowState
     
-    @State private var faceImage: UIImage?
-    @State private var profileImage: UIImage?
-    @State private var bodyImage: UIImage?
-    
     @State private var isShowingCamera = false
     @State private var isShowingGuidedFaceCapture = false
     @State private var showHardwareSelector = false
@@ -60,7 +56,7 @@ struct IdentityCaptureView: View {
                         isShowingGuidedFaceCapture = true
                     }) {
                         HStack(spacing: 16) {
-                            if let face = faceImage, let profile = profileImage {
+                            if let face = appState.faceImage, let profile = appState.profileImage {
                                 HStack(spacing: -10) {
                                     Image(uiImage: face).resizable().scaledToFill().frame(width: 50, height: 50).clipShape(Circle()).overlay(Circle().stroke(Color.green, lineWidth: 2))
                                     Image(uiImage: profile).resizable().scaledToFill().frame(width: 50, height: 50).clipShape(Circle()).overlay(Circle().stroke(Color.green, lineWidth: 2))
@@ -86,9 +82,9 @@ struct IdentityCaptureView: View {
                             }
                             Spacer()
                             
-                            Image(systemName: (faceImage != nil && profileImage != nil) ? "checkmark.circle.fill" : "chevron.right")
+                            Image(systemName: (appState.faceImage != nil && appState.profileImage != nil) ? "checkmark.circle.fill" : "chevron.right")
                                 .font(.title2)
-                                .foregroundColor((faceImage != nil && profileImage != nil) ? .green : Color(uiColor: .tertiaryLabel))
+                                .foregroundColor((appState.faceImage != nil && appState.profileImage != nil) ? .green : Color(uiColor: .tertiaryLabel))
                         }
                         .padding()
                         .background(.ultraThinMaterial)
@@ -102,7 +98,7 @@ struct IdentityCaptureView: View {
                         isShowingCamera = true
                     }) {
                         HStack(spacing: 16) {
-                            if let bodyImg = bodyImage {
+                            if let bodyImg = appState.bodyImage {
                                 Image(uiImage: bodyImg).resizable().scaledToFill().frame(width: 50, height: 50).clipShape(Circle()).overlay(Circle().stroke(Color.green, lineWidth: 2))
                             } else {
                                 ZStack {
@@ -125,9 +121,9 @@ struct IdentityCaptureView: View {
                             }
                             Spacer()
                             
-                            Image(systemName: bodyImage != nil ? "checkmark.circle.fill" : "camera.circle")
+                            Image(systemName: appState.bodyImage != nil ? "checkmark.circle.fill" : "camera.circle")
                                 .font(.title2)
-                                .foregroundColor(bodyImage != nil ? .green : Color(uiColor: .tertiaryLabel))
+                                .foregroundColor(appState.bodyImage != nil ? .green : Color(uiColor: .tertiaryLabel))
                         }
                         .padding()
                         .background(.ultraThinMaterial)
@@ -160,10 +156,10 @@ struct IdentityCaptureView: View {
         }
         .preferredColorScheme(.light)
         .fullScreenCover(isPresented: $isShowingGuidedFaceCapture) {
-            GuidedFaceCaptureView(faceImage: $faceImage, profileImage: $profileImage)
+            GuidedFaceCaptureView(faceImage: $appState.faceImage, profileImage: $appState.profileImage)
         }
         .fullScreenCover(isPresented: $isShowingCamera) {
-            ImagePicker(selectedImage: $bodyImage, sourceType: .camera)
+            ImagePicker(selectedImage: $appState.bodyImage, sourceType: .camera)
                 .ignoresSafeArea()
         }
         .confirmationDialog("Select Capture Hardware", isPresented: $showHardwareSelector, titleVisibility: .visible) {
@@ -180,6 +176,6 @@ struct IdentityCaptureView: View {
     }
     
     private var allPhotosCaptured: Bool {
-        return faceImage != nil && profileImage != nil && bodyImage != nil
+        return appState.faceImage != nil && appState.profileImage != nil && appState.bodyImage != nil
     }
 }

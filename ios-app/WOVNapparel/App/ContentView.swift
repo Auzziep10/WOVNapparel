@@ -10,8 +10,6 @@ struct ContentView: View {
                 ProfileSetupView()
             case .onboardingPhotos:
                 IdentityCaptureView()
-            case .dashboard:
-                OccasionDashboard()
             case .lidarCaptureFlow:
                 if #available(iOS 17.0, *) {
                     ARScannerView()
@@ -20,6 +18,10 @@ struct ContentView: View {
                 }
             case .standardCaptureFlow:
                 CameraView()
+            case .profileReview:
+                ProfileDashboardView()
+            case .occasionSelection:
+                OccasionSelectionView()
             case .tryOn(let techPackId):
                 Text("Try-On View for \(techPackId)")
             }
