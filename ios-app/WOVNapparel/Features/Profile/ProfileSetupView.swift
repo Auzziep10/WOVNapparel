@@ -6,7 +6,17 @@ struct ProfileSetupView: View {
     
     var body: some View {
         ZStack {
+            // Sleek animated background to make the glass visible
             Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
+            
+            GeometryReader { proxy in
+                Circle()
+                    .fill(LinearGradient(colors: [.blue.opacity(0.3), .purple.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: proxy.size.width * 1.5)
+                    .blur(radius: 60)
+                    .offset(x: -proxy.size.width * 0.2, y: -proxy.size.height * 0.2)
+            }
+            .ignoresSafeArea()
             
             VStack(spacing: 30) {
                 VStack(spacing: 8) {
@@ -22,22 +32,24 @@ struct ProfileSetupView: View {
                 }
                 .padding(.top, 40)
                 
-                // Basic Info Input
+                // Basic Info Input (Liquid Glass)
                 VStack(spacing: 16) {
                     TextField("Full Name", text: $appState.userName)
                         .padding()
-                        .background(Color(uiColor: .secondarySystemGroupedBackground))
-                        .cornerRadius(12)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(16)
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.5), lineWidth: 1))
                         .foregroundColor(.primary)
-                        .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
+                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
                     
                     HStack {
                         TextField("Height (e.g. 5'10\" or 178)", text: $userHeightInput)
                             .padding()
-                            .background(Color(uiColor: .secondarySystemGroupedBackground))
-                            .cornerRadius(12)
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(16)
+                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.5), lineWidth: 1))
                             .foregroundColor(.primary)
-                            .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
+                            .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
                         
                         Text("in/cm")
                             .foregroundColor(.secondary)
@@ -48,7 +60,7 @@ struct ProfileSetupView: View {
                 
                 Spacer()
                 
-                // Next Step
+                // Next Step (Liquid Glass)
                 Button(action: {
                     withAnimation {
                         appState.currentRoute = .onboardingPhotos
@@ -56,12 +68,13 @@ struct ProfileSetupView: View {
                 }) {
                     Text("Next: Visual Identity")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(appState.userName.isEmpty || userHeightInput.isEmpty ? .secondary : .primary)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(appState.userName.isEmpty || userHeightInput.isEmpty ? Color.blue.opacity(0.5) : Color.blue)
-                        .cornerRadius(16)
-                        .shadow(color: .blue.opacity(0.3), radius: 10, y: 5)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(20)
+                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.8), lineWidth: 1))
+                        .shadow(color: .black.opacity(0.05), radius: 15, y: 5)
                 }
                 .disabled(appState.userName.isEmpty || userHeightInput.isEmpty)
                 .padding(.horizontal, 30)

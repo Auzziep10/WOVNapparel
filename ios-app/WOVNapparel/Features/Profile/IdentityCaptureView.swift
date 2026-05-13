@@ -8,28 +8,36 @@ struct IdentityCaptureView: View {
     @State private var bodyImage: UIImage?
     
     @State private var isShowingCamera = false
-    @State private var activeCaptureStep: CaptureStep? = nil
+    @State private var isShowingGuidedFaceCapture = false
     @State private var showHardwareSelector = false
-    
-    enum CaptureStep {
-        case face, profile, body
-    }
     
     var body: some View {
         ZStack {
+            // Sleek animated background to make the glass visible
             Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
+            
+            GeometryReader { proxy in
+                Circle()
+                    .fill(LinearGradient(colors: [.blue.opacity(0.2), .purple.opacity(0.3)], startPoint: .bottomTrailing, endPoint: .topLeading))
+                    .frame(width: proxy.size.width * 1.5)
+                    .blur(radius: 60)
+                    .offset(x: -proxy.size.width * 0.2, y: -proxy.size.height * 0.2)
+            }
+            .ignoresSafeArea()
             
             VStack(spacing: 20) {
                 HStack {
                     Button(action: {
-                        withAnimation { appState.currentRoute = .onboarding }
+                        withAnimation { appState.currentRoute = .onboardingBasic }
                     }) {
                         Image(systemName: "chevron.left")
                             .font(.title3)
                             .foregroundColor(.secondary)
                             .padding()
-                            .background(Color(uiColor: .secondarySystemGroupedBackground))
+                            .background(.ultraThinMaterial)
                             .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.white.opacity(0.5), lineWidth: 1))
+                            .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
                     }
                     Spacer()
                 }
@@ -46,17 +54,86 @@ struct IdentityCaptureView: View {
                     .padding(.horizontal, 30)
                 
                 VStack(spacing: 16) {
-                    CaptureStepRow(icon: "person.crop.square", title: "Face Close-up", description: "Straight-on face photo in good lighting", image: faceImage) {
-                        activeCaptureStep = .face
-                        isShowingCamera = true
+                    
+                    // Guided Face Scan Button
+                    Button(action: {
+                        isShowingGuidedFaceCapture = true
+                    }) {
+                        HStack(spacing: 16) {
+                            if let face = faceImage, let profile = profileImage {
+                                HStack(spacing: -10) {
+                                    Image(uiImage: face).resizable().scaledToFill().frame(width: 50, height: 50).clipShape(Circle()).overlay(Circle().stroke(Color.green, lineWidth: 2))
+                                    Image(uiImage: profile).resizable().scaledToFill().frame(width: 50, height: 50).clipShape(Circle()).overlay(Circle().stroke(Color.green, lineWidth: 2))
+                                }
+                            } else {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.blue.opacity(0.1))
+                                        .frame(width: 50, height: 50)
+                                    Image(systemName: "faceid")
+                                        .font(.title3)
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Guided Face Scan")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                Text("Face ID style automated capture")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            
+                            Image(systemName: (faceImage != nil && profileImage != nil) ? "checkmark.circle.fill" : "chevron.right")
+                                .font(.title2)
+                                .foregroundColor((faceImage != nil && profileImage != nil) ? .green : Color(uiColor: .tertiaryLabel))
+                        }
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(20)
+                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.5), lineWidth: 1))
+                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
                     }
-                    CaptureStepRow(icon: "person.crop.square.filled.and.at.rectangle", title: "Profile View", description: "Side profile of your face and hair", image: profileImage) {
-                        activeCaptureStep = .profile
+                    
+                    // Full Body Photo Button
+                    Button(action: {
                         isShowingCamera = true
-                    }
-                    CaptureStepRow(icon: "figure.stand", title: "Full Body Photo", description: "Stand against a blank wall", image: bodyImage) {
-                        activeCaptureStep = .body
-                        isShowingCamera = true
+                    }) {
+                        HStack(spacing: 16) {
+                            if let bodyImg = bodyImage {
+                                Image(uiImage: bodyImg).resizable().scaledToFill().frame(width: 50, height: 50).clipShape(Circle()).overlay(Circle().stroke(Color.green, lineWidth: 2))
+                            } else {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.purple.opacity(0.1))
+                                        .frame(width: 50, height: 50)
+                                    Image(systemName: "figure.stand")
+                                        .font(.title3)
+                                        .foregroundColor(.purple)
+                                }
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Full Body Photo")
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                Text("Stand against a blank wall")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            
+                            Image(systemName: bodyImage != nil ? "checkmark.circle.fill" : "camera.circle")
+                                .font(.title2)
+                                .foregroundColor(bodyImage != nil ? .green : Color(uiColor: .tertiaryLabel))
+                        }
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(20)
+                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.5), lineWidth: 1))
+                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
                     }
                 }
                 .padding(.horizontal, 24)
@@ -68,12 +145,13 @@ struct IdentityCaptureView: View {
                 }) {
                     Text("Next: 3D Body Scan")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundColor(allPhotosCaptured ? .primary : .secondary)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(allPhotosCaptured ? Color.blue : Color.blue.opacity(0.5))
-                        .cornerRadius(16)
-                        .shadow(color: .blue.opacity(0.3), radius: 10, y: 5)
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(20)
+                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.8), lineWidth: 1))
+                        .shadow(color: .black.opacity(0.05), radius: 15, y: 5)
                 }
                 .disabled(!allPhotosCaptured)
                 .padding(.horizontal, 30)
@@ -81,8 +159,11 @@ struct IdentityCaptureView: View {
             }
         }
         .preferredColorScheme(.light)
+        .fullScreenCover(isPresented: $isShowingGuidedFaceCapture) {
+            GuidedFaceCaptureView(faceImage: $faceImage, profileImage: $profileImage)
+        }
         .fullScreenCover(isPresented: $isShowingCamera) {
-            ImagePicker(selectedImage: bindingForActiveStep(), sourceType: .camera)
+            ImagePicker(selectedImage: $bodyImage, sourceType: .camera)
                 .ignoresSafeArea()
         }
         .confirmationDialog("Select Capture Hardware", isPresented: $showHardwareSelector, titleVisibility: .visible) {
@@ -100,65 +181,5 @@ struct IdentityCaptureView: View {
     
     private var allPhotosCaptured: Bool {
         return faceImage != nil && profileImage != nil && bodyImage != nil
-    }
-    
-    private func bindingForActiveStep() -> Binding<UIImage?> {
-        switch activeCaptureStep {
-        case .face: return $faceImage
-        case .profile: return $profileImage
-        case .body: return $bodyImage
-        case .none: return .constant(nil)
-        }
-    }
-}
-
-struct CaptureStepRow: View {
-    let icon: String
-    let title: String
-    let description: String
-    let image: UIImage?
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 16) {
-                if let img = image {
-                    Image(uiImage: img)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 50, height: 50)
-                        .clipShape(Circle())
-                        .overlay(Circle().stroke(Color.green, lineWidth: 2))
-                } else {
-                    ZStack {
-                        Circle()
-                            .fill(Color.blue.opacity(0.1))
-                            .frame(width: 50, height: 50)
-                        Image(systemName: icon)
-                            .font(.title3)
-                            .foregroundColor(.blue)
-                    }
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                    Text(description)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.leading)
-                }
-                Spacer()
-                
-                Image(systemName: image != nil ? "checkmark.circle.fill" : "camera.circle")
-                    .font(.title2)
-                    .foregroundColor(image != nil ? .green : Color(uiColor: .tertiaryLabel))
-            }
-            .padding()
-            .background(Color(uiColor: .secondarySystemGroupedBackground))
-            .cornerRadius(16)
-            .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
-        }
     }
 }
