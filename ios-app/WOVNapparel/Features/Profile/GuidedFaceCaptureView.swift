@@ -49,73 +49,54 @@ struct GuidedFaceCaptureView: View {
             )
             .ignoresSafeArea()
             
-            // UI Overlay
-            VStack {
-                HStack {
-                    Button(action: { presentationMode.wrappedValue.dismiss() }) {
-                        Text("Cancel")
-                            .foregroundColor(.white)
-                            .padding()
-                            .background(.ultraThinMaterial)
-                            .clipShape(Capsule())
-                    }
-                    Spacer()
-                }
-                .padding()
-                
-                Spacer()
-                
-                // Guidance Text
-                VStack(spacing: 12) {
-                    Text(instructionTitle)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                    
-                    Text(instructionSubtitle)
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                        .multilineTextAlignment(.center)
-                }
-                .padding(24)
-                .background(.ultraThinMaterial)
-                .cornerRadius(24)
-                .overlay(RoundedRectangle(cornerRadius: 24).stroke(Color.white.opacity(0.3), lineWidth: 1))
-                .padding(.horizontal, 40)
-                .padding(.bottom, 60)
-            }
-            
-            // Mask Overlay
+            // Face ID Style Mask (Perfect Circle)
             GeometryReader { proxy in
-                let width = proxy.size.width * 0.8
-                let height = proxy.size.height * 0.55
+                let circleSize = min(proxy.size.width, proxy.size.height) * 0.75
                 
                 ZStack {
-                    // Darken everything outside the oval
-                    Color.black.opacity(0.6)
+                    // Darken everything outside the circle
+                    Color.black
                         .mask(
                             Rectangle()
                                 .overlay(
-                                    Ellipse()
-                                        .frame(width: width, height: height)
+                                    Circle()
+                                        .frame(width: circleSize, height: circleSize)
                                         .blendMode(.destinationOut)
                                 )
                         )
                         .ignoresSafeArea()
                     
-                    // The glowing outline
-                    Ellipse()
-                        .stroke(progressColor, lineWidth: 4)
-                        .frame(width: width, height: height)
-                        .blur(radius: 2)
+                    // The dashed tracker ring
+                    Circle()
+                        .stroke(progressColor, style: StrokeStyle(lineWidth: 6, lineCap: .round, dash: [10, 15]))
+                        .frame(width: circleSize + 20, height: circleSize + 20)
                         .animation(.easeInOut, value: captureState)
-                    
-                    // The actual stroke
-                    Ellipse()
-                        .stroke(Color.white.opacity(0.5), lineWidth: 2)
-                        .frame(width: width, height: height)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            
+            // Minimalist Top UI
+            VStack {
+                Text(instructionTitle)
+                    .font(.system(size: 28, weight: .bold, design: .default))
+                    .foregroundColor(.white)
+                    .padding(.top, 60)
+                
+                Text(instructionSubtitle)
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 4)
+                
+                Spacer()
+                
+                Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                    Text("Cancel")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                }
+                .padding(.bottom, 40)
             }
         }
         .preferredColorScheme(.dark)
@@ -123,23 +104,23 @@ struct GuidedFaceCaptureView: View {
     
     private var instructionTitle: String {
         switch captureState {
-        case .initializing: return "Starting Camera..."
-        case .alignStraight: return "Look Straight"
+        case .initializing: return "Face ID Setup"
+        case .alignStraight: return "How to Set Up Face ID"
         case .capturingStraight: return "Hold Still..."
-        case .turnLeft: return "Turn Slowly Left"
+        case .turnLeft: return "Move your head slowly"
         case .capturingLeft: return "Hold Still..."
-        case .turnRight: return "Turn Slowly Right"
+        case .turnRight: return "Move your head slowly"
         case .capturingRight: return "Hold Still..."
-        case .complete: return "Capture Complete!"
+        case .complete: return "Face ID is Set Up"
         }
     }
     
     private var instructionSubtitle: String {
         switch captureState {
-        case .alignStraight: return "Position your face inside the frame"
-        case .turnLeft: return "Keep your phone steady and turn your head left"
-        case .turnRight: return "Now turn your head slowly to the right"
-        case .complete: return "Processing your visual identity"
+        case .alignStraight: return "First, position your face in the camera frame.\nThen move your head in a circle to show all the angles of your face."
+        case .turnLeft: return "Turn your head to the left."
+        case .turnRight: return "Turn your head to the right."
+        case .complete: return "Your face has been successfully scanned."
         default: return ""
         }
     }
@@ -149,7 +130,7 @@ struct GuidedFaceCaptureView: View {
         case .capturingStraight, .capturingLeft, .capturingRight, .complete:
             return .green
         default:
-            return .blue
+            return .gray.opacity(0.5)
         }
     }
 }
@@ -166,6 +147,7 @@ struct ARFaceTrackingViewContainer: UIViewRepresentable {
         let arView = ARSCNView(frame: .zero)
         arView.delegate = context.coordinator
         arView.automaticallyUpdatesLighting = true
+        arView.backgroundColor = .black
         
         let config = ARFaceTrackingConfiguration()
         arView.session.run(config, options: [.resetTracking, .removeExistingAnchors])
@@ -187,8 +169,27 @@ struct ARFaceTrackingViewContainer: UIViewRepresentable {
             self.parent = parent
         }
         
+        // This adds the exact Face ID 3D wireframe mesh over the user's face!
+        func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
+            guard let device = renderer.device, anchor is ARFaceAnchor else { return nil }
+            let faceGeometry = ARSCNFaceGeometry(device: device)
+            let node = SCNNode(geometry: faceGeometry)
+            
+            // Render as a futuristic green wireframe
+            node.geometry?.firstMaterial?.fillMode = .lines
+            node.geometry?.firstMaterial?.diffuse.contents = UIColor.systemGreen.withAlphaComponent(0.8)
+            node.geometry?.firstMaterial?.lightingModel = .constant
+            
+            return node
+        }
+        
         func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
             guard let faceAnchor = anchor as? ARFaceAnchor, !isCapturing else { return }
+            
+            // Update the wireframe geometry to match the face expressions in real time
+            if let faceGeometry = node.geometry as? ARSCNFaceGeometry {
+                faceGeometry.update(from: faceAnchor.geometry)
+            }
             
             let yaw = node.eulerAngles.y
             
