@@ -6,6 +6,8 @@ struct IdentityCaptureView: View {
     @State private var isShowingCamera = false
     @State private var isShowingGuidedFaceCapture = false
     @State private var showHardwareSelector = false
+    @State private var showPhotoSourceSelector = false
+    @State private var imageSourceType: UIImagePickerController.SourceType = .camera
     
     var body: some View {
         ZStack {
@@ -88,7 +90,7 @@ struct IdentityCaptureView: View {
                     
                     // Full Body Photo Button
                     Button(action: {
-                        isShowingCamera = true
+                        showPhotoSourceSelector = true
                     }) {
                         HStack(spacing: 16) {
                             if let bodyImg = appState.bodyImage {
@@ -109,7 +111,7 @@ struct IdentityCaptureView: View {
                                     .font(.system(size: 10, weight: .semibold))
                                     .tracking(1.5)
                                     .foregroundColor(Color.zinc900)
-                                Text("Stand against a blank wall")
+                                Text("Aesthetic reference photo for AI")
                                     .font(.system(size: 12))
                                     .foregroundColor(Color.zinc500)
                             }
@@ -149,8 +151,19 @@ struct IdentityCaptureView: View {
             GuidedFaceCaptureView(faceImage: $appState.faceImage, profileImage: $appState.profileImage)
         }
         .fullScreenCover(isPresented: $isShowingCamera) {
-            ImagePicker(selectedImage: $appState.bodyImage, sourceType: .camera)
+            ImagePicker(selectedImage: $appState.bodyImage, sourceType: imageSourceType)
                 .ignoresSafeArea()
+        }
+        .confirmationDialog("Select Photo Source", isPresented: $showPhotoSourceSelector, titleVisibility: .visible) {
+            Button("Photo Library") {
+                imageSourceType = .photoLibrary
+                isShowingCamera = true
+            }
+            Button("Take Photo") {
+                imageSourceType = .camera
+                isShowingCamera = true
+            }
+            Button("Cancel", role: .cancel) {}
         }
         .confirmationDialog("Select Capture Hardware", isPresented: $showHardwareSelector, titleVisibility: .visible) {
             Button("iPhone Pro (LiDAR Scan)") {
