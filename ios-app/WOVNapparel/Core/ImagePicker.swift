@@ -40,7 +40,7 @@ struct ImagePicker: UIViewControllerRepresentable {
             label.layer.shadowRadius = 5
             label.text = "10"
             
-            let startButton = UIButton(frame: CGRect(x: UIScreen.main.bounds.width / 2 - 75, y: UIScreen.main.bounds.height - 220, width: 150, height: 50))
+            let startButton = UIButton(frame: CGRect(x: UIScreen.main.bounds.width / 2 - 75, y: 220, width: 150, height: 50))
             startButton.backgroundColor = UIColor(white: 0, alpha: 0.7)
             startButton.setTitle("START 10s TIMER", for: .normal)
             startButton.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)

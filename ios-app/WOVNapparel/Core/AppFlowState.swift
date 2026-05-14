@@ -61,7 +61,15 @@ class AppFlowState: ObservableObject {
         switch result {
         case .success(let authorization):
             print("Apple Sign-In Success: \(authorization)")
-            isAuthenticated = true
+            // Perform anonymous sign in so Firebase Storage/Firestore works
+            FirebaseAuth.Auth.auth().signInAnonymously { authResult, error in
+                if let error = error {
+                    print("Firebase Anonymous Auth Failed: \(error.localizedDescription)")
+                } else {
+                    print("Firebase Anonymous Auth Success: \(authResult?.user.uid ?? "")")
+                    self.isAuthenticated = true
+                }
+            }
         case .failure(let error):
             print("Apple Sign-In Failed: \(error.localizedDescription)")
         }
@@ -69,6 +77,14 @@ class AppFlowState: ObservableObject {
     
     func signInWithGoogle() {
         print("Google Sign In clicked")
+        FirebaseAuth.Auth.auth().signInAnonymously { authResult, error in
+            if let error = error {
+                print("Firebase Anonymous Auth Failed: \(error.localizedDescription)")
+            } else {
+                print("Firebase Anonymous Auth Success: \(authResult?.user.uid ?? "")")
+                self.isAuthenticated = true
+            }
+        }
     }
     
     func signOut() {
