@@ -24,17 +24,32 @@ struct OccasionSelectionView: View {
                 Color(white: 0.9).ignoresSafeArea()
             }
             
-            // Logo Top Left
+            // Logo Top Left & Back Button
             VStack {
-                HStack {
+                HStack(alignment: .center, spacing: 16) {
+                    Button(action: {
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+                        appState.currentRoute = .profileReview
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.black)
+                            .frame(width: 44, height: 44)
+                            .background(Color.white.opacity(0.8))
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.1), radius: 5, y: 2)
+                    }
+                    .padding(.leading, 24)
+                    
                     Image("wovn-logo")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 100)
-                        .padding(.leading, 24)
-                        .padding(.top, 20)
+                    
                     Spacer()
                 }
+                .padding(.top, 20)
                 Spacer()
             }
             

@@ -72,7 +72,11 @@ class AppFlowState: ObservableObject {
     }
     
     func uploadIdentityData(selectedOccasion: String) {
-        guard let face = faceImage, let profile = profileImage, let body = bodyImage else { return }
+        guard let face = faceImage, let profile = profileImage, let body = bodyImage else { 
+            print("Notice: Missing photos. Skipping cloud upload and jumping to Try-On for demo purposes.")
+            self.currentRoute = .tryOn(techPackId: selectedOccasion)
+            return 
+        }
         
         isUploadingToCloud = true
         uploadProgressText = "Verifying Secure Session..."
