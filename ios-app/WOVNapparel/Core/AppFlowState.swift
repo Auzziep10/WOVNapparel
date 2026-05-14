@@ -39,6 +39,7 @@ class AppFlowState: ObservableObject {
     
     // Synthesis State
     @Published var isSynthesizing: Bool = false
+    @Published var synthesisProgress: Int = 0
     @Published var generatedImageURL: URL? = nil
     
     // Catalog & Cache State
@@ -130,7 +131,17 @@ class AppFlowState: ObservableObject {
         }
         
         isSynthesizing = true
+        synthesisProgress = 0
         selectedGarmentId = garmentId
+        
+        // Simulate progress for AI generation
+        let progressTask = Task { @MainActor in
+            for i in 1...95 {
+                try? await Task.sleep(nanoseconds: 40_000_000) // Fast progress simulation
+                if Task.isCancelled { break }
+                synthesisProgress = i
+            }
+        }
         
         Task { @MainActor in
             do {
@@ -147,6 +158,8 @@ class AppFlowState: ObservableObject {
                 request.httpBody = try JSONSerialization.data(withJSONObject: payload)
                 
                 let (data, response) = try await URLSession.shared.data(for: request)
+                
+                progressTask.cancel() // Stop simulated progress
                 
                 guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                     print("Synthesis API Error")
@@ -169,8 +182,10 @@ class AppFlowState: ObservableObject {
                         }
                     }
                     
-                    // Artificial delay to simulate heavy AI generation
-                    try await Task.sleep(nanoseconds: 1_000_000_000)
+                    synthesisProgress = 100 // Snap to 100%
+                    
+                    // Artificial delay to let user see 100%
+                    try await Task.sleep(nanoseconds: 300_000_000)
                     
                     self.generatedImageURL = finalURL
                     self.renderCache[cacheKey] = finalURL // Save to intelligent cache
@@ -179,6 +194,7 @@ class AppFlowState: ObservableObject {
                 self.isSynthesizing = false
             } catch {
                 print("Failed to trigger synthesis: \(error)")
+                progressTask.cancel()
                 self.isSynthesizing = false
             }
         }

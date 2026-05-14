@@ -34,20 +34,18 @@ struct TryOnView: View {
             // 2. Global Loading Spinner (Only for initial load)
             if appState.generatedImageURL == nil && appState.isSynthesizing {
                 VStack(spacing: 32) {
-                    ZStack {
-                        Circle()
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 4)
-                            .frame(width: 80, height: 80)
+                    Text("\(appState.synthesisProgress)%")
+                        .font(.system(size: 64, weight: .light, design: .serif))
+                        .foregroundColor(Color(red: 24/255, green: 24/255, blue: 27/255))
+                    
+                    VStack(spacing: 8) {
+                        Text("Synthesizing Style...")
+                            .font(.system(size: 24, weight: .regular, design: .serif))
                         
-                        Circle()
-                            .trim(from: 0, to: 0.7)
-                            .stroke(Color.black, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                            .frame(width: 80, height: 80)
-                            .rotationEffect(Angle(degrees: appState.isSynthesizing ? 360 : 0))
-                            .animation(.linear(duration: 1.5).repeatForever(autoreverses: false), value: appState.isSynthesizing)
+                        Text("Running AI garment mapping...")
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
                     }
-                    Text("Synthesizing Style...")
-                        .font(.system(size: 18, weight: .regular, design: .serif))
                 }
             }
             
@@ -95,14 +93,15 @@ struct TryOnView: View {
                                             .frame(width: 50, height: 50)
                                             .clipShape(Circle())
                                             
-                                            // Show spinner ON the bubble if this specific one is loading
+                                            // Show percentage ON the bubble if this specific one is loading
                                             if appState.isSynthesizing && appState.selectedGarmentId == garment.id {
                                                 Circle()
-                                                    .fill(Color.white.opacity(0.7))
+                                                    .fill(Color.black.opacity(0.6))
                                                     .frame(width: 60, height: 60)
                                                 
-                                                ProgressView()
-                                                    .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                                                Text("\(appState.synthesisProgress)%")
+                                                    .font(.system(size: 14, weight: .bold))
+                                                    .foregroundColor(.white)
                                             }
                                             
                                             // Selection Ring
