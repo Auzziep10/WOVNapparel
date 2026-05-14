@@ -52,6 +52,9 @@ class AppFlowState: ObservableObject {
         currentRoute = .profileReview
     }
     
+    // Mock Session ID for Demo Purposes when Firebase Auth is missing
+    @Published var mockSessionId: String = UUID().uuidString
+    
     // MARK: - OAuth Handlers
     func handleAppleSignInRequest(_ request: ASAuthorizationAppleIDRequest) {
         request.requestedScopes = [.fullName, .email]
@@ -61,15 +64,7 @@ class AppFlowState: ObservableObject {
         switch result {
         case .success(let authorization):
             print("Apple Sign-In Success: \(authorization)")
-            // Perform anonymous sign in so Firebase Storage/Firestore works
-            FirebaseAuth.Auth.auth().signInAnonymously { authResult, error in
-                if let error = error {
-                    print("Firebase Anonymous Auth Failed: \(error.localizedDescription)")
-                } else {
-                    print("Firebase Anonymous Auth Success: \(authResult?.user.uid ?? "")")
-                    self.isAuthenticated = true
-                }
-            }
+            self.isAuthenticated = true
         case .failure(let error):
             print("Apple Sign-In Failed: \(error.localizedDescription)")
         }
@@ -77,14 +72,7 @@ class AppFlowState: ObservableObject {
     
     func signInWithGoogle() {
         print("Google Sign In clicked")
-        FirebaseAuth.Auth.auth().signInAnonymously { authResult, error in
-            if let error = error {
-                print("Firebase Anonymous Auth Failed: \(error.localizedDescription)")
-            } else {
-                print("Firebase Anonymous Auth Success: \(authResult?.user.uid ?? "")")
-                self.isAuthenticated = true
-            }
-        }
+        self.isAuthenticated = true
     }
     
     func signOut() {
@@ -110,9 +98,7 @@ class AppFlowState: ObservableObject {
         
         Task { @MainActor in
             do {
-                guard let userId = FirebaseAuth.Auth.auth().currentUser?.uid else {
-                    throw NSError(domain: "Auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not authenticated. Please log in."])
-                }
+                let userId = FirebaseAuth.Auth.auth().currentUser?.uid ?? mockSessionId
                 
                 self.uploadProgressText = "Encrypting & Syncing Photos..."
                 
@@ -142,16 +128,17 @@ class AppFlowState: ObservableObject {
                 
             } catch {
                 print("Failed to sync identity: \(error)")
-                self.uploadProgressText = "Sync Failed. Retrying..."
-                try? await Task.sleep(nanoseconds: 2_000_000_000)
+                self.uploadProgressText = "Sync Failed. Proceeding locally..."
+                try? await Task.sleep(nanoseconds: 1_500_000_000)
                 self.isUploadingToCloud = false
+                self.currentRoute = .tryOn(techPackId: selectedOccasion)
             }
         }
     }
     
     // MARK: - Synthesis Trigger
     func triggerSynthesis(occasion: String, garmentId: String? = nil) {
-        guard let userId = FirebaseAuth.Auth.auth().currentUser?.uid else { return }
+        let userId = FirebaseAuth.Auth.auth().currentUser?.uid ?? mockSessionId
         
         // Caching Logic: If we already synthesized this exact state, load it instantly.
         let cacheKey = garmentId ?? "default_\(occasion)"
@@ -176,7 +163,8 @@ class AppFlowState: ObservableObject {
         
         Task { @MainActor in
             do {
-                guard let url = URL(string: "http://localhost:3000/api/render-fit") else { return }
+                // Use local network IP so physical device can reach Mac
+                guard let url = URL(string: "http://192.168.1.92:3000/api/render-fit") else { return }
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
