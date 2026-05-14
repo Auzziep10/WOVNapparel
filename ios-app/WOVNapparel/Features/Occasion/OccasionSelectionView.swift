@@ -44,9 +44,6 @@ struct OccasionSelectionView: View {
                 
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: 0) {
-                        // Top padding to allow first item to hit center
-                        Color.clear.frame(height: midY - 40)
-                        
                         ForEach(0..<occasions.count, id: \.self) { index in
                             GeometryReader { itemGeometry in
                                 let itemMidY = itemGeometry.frame(in: .global).midY
@@ -71,13 +68,11 @@ struct OccasionSelectionView: View {
                             }
                             .frame(height: 80)
                         }
-                        
-                        // Bottom padding to allow last item to hit center
-                        Color.clear.frame(height: midY - 40)
                     }
                     .scrollTargetLayout()
                 }
                 .scrollTargetBehavior(.viewAligned) // Requires iOS 17
+                .safeAreaPadding(.vertical, midY - 40) // The safe area padding pushes the alignment target exactly to the center!
             }
             .ignoresSafeArea()
             
