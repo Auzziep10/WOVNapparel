@@ -71,6 +71,17 @@ class AppFlowState: ObservableObject {
         print("Google Sign In clicked")
     }
     
+    func signOut() {
+        do {
+            try FirebaseAuth.Auth.auth().signOut()
+            self.isAuthenticated = false
+            self.hasProfile = false
+            self.currentRoute = .onboardingBasic
+        } catch {
+            print("Error signing out: \(error.localizedDescription)")
+        }
+    }
+    
     func uploadIdentityData(selectedOccasion: String) {
         guard let face = faceImage, let profile = profileImage, let body = bodyImage else { 
             print("Notice: Missing photos. Skipping cloud upload and jumping to Try-On for demo purposes.")

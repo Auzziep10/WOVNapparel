@@ -4,6 +4,7 @@ import SceneKit
 struct ProfileDashboardView: View {
     @EnvironmentObject var appState: AppFlowState
     @State private var showARQuickLook = false
+    @State private var showEditMenu = false
     
     var body: some View {
         ZStack {
@@ -13,8 +14,24 @@ struct ProfileDashboardView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 40) {
                         
-                        // HEADER
+                        // TOP NAV & HEADER
                         VStack(spacing: 12) {
+                            HStack {
+                                Spacer()
+                                Button(action: {
+                                    showEditMenu = true
+                                }) {
+                                    Image(systemName: "gearshape.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(Color(red: 161/255, green: 161/255, blue: 170/255))
+                                        .padding(12)
+                                        .background(Color.white)
+                                        .clipShape(Circle())
+                                        .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
+                                }
+                                .padding(.trailing, 24)
+                            }
+                            
                             Text("Identity Captured")
                                 .font(.system(size: 36, weight: .regular, design: .serif))
                                 .foregroundColor(Color(red: 24/255, green: 24/255, blue: 27/255))
@@ -26,7 +43,7 @@ struct ProfileDashboardView: View {
                                 .padding(.horizontal, 40)
                                 .lineSpacing(4)
                         }
-                        .padding(.top, 40)
+                        .padding(.top, 20)
                         
                         // AVATAR ROW (Face & Profile)
                         HStack(spacing: 40) {
@@ -101,6 +118,21 @@ struct ProfileDashboardView: View {
                     if let modelURL = appState.scannedModelURL {
                         ARQuickLookView(url: modelURL)
                     }
+                }
+                .confirmationDialog("Edit Profile", isPresented: $showEditMenu, titleVisibility: .visible) {
+                    Button("Edit Personal Info") {
+                        appState.currentRoute = .onboardingBasic
+                    }
+                    Button("Retake Reference Photos") {
+                        appState.currentRoute = .onboardingPhotos
+                    }
+                    Button("Retake 3D Spatial Scan") {
+                        appState.currentRoute = .lidarCaptureFlow
+                    }
+                    Button("Sign Out", role: .destructive) {
+                        appState.signOut()
+                    }
+                    Button("Cancel", role: .cancel) { }
                 }
                 
                 // BOTTOM ACTION BAR
