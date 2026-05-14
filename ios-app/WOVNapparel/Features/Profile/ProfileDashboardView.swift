@@ -1,5 +1,5 @@
 import SwiftUI
-import RealityKit
+import SceneKit
 
 struct ProfileDashboardView: View {
     @EnvironmentObject var appState: AppFlowState
@@ -52,17 +52,15 @@ struct ProfileDashboardView: View {
                                         .frame(maxWidth: UIScreen.main.bounds.width - 48, minHeight: 300)
                                         .shadow(color: .black.opacity(0.08), radius: 20, y: 10)
                                     
-                                    if #available(iOS 17.0, *) {
-                                        Model3D(url: modelURL) { model in
-                                            model
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fit)
-                                        } placeholder: {
-                                            ProgressView()
-                                        }
-                                        .frame(width: 250, height: 250)
+                                    if let scene = try? SCNScene(url: modelURL) {
+                                        SceneView(
+                                            scene: scene,
+                                            options: [.autoenablesDefaultLighting, .allowsCameraControl]
+                                        )
+                                        .frame(height: 300)
+                                        .clipShape(RoundedRectangle(cornerRadius: 16))
                                     } else {
-                                        Text("3D Viewer requires iOS 17")
+                                        Text("Failed to load 3D Scan")
                                             .foregroundColor(.gray)
                                     }
                                 }

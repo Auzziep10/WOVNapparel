@@ -42,7 +42,7 @@
 		1D61BC284C66D941BC3FA182 /* OccasionSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OccasionSelectionView.swift; sourceTree = "<group>"; };
 		2BCCE955C5569D0E717EA370 /* ARQuickLookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARQuickLookView.swift; sourceTree = "<group>"; };
 		46F548F2753F9AA38F148C30 /* FirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseManager.swift; sourceTree = "<group>"; };
-		4F75C4DC3F7091F292F8B52A /* WOVNapparel.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WOVNapparel.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4F75C4DC3F7091F292F8B52A /* WOVNapparel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WOVNapparel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B26CE6D5049EDB66C973417 /* AppFlowState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFlowState.swift; sourceTree = "<group>"; };
 		6D8E1E248DC72091BF38EDAD /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
 		6E238E9D541BDD3E39CADE29 /* BodyScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyScannerView.swift; sourceTree = "<group>"; };
@@ -233,8 +233,6 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
-				TargetAttributes = {
-				};
 			};
 			buildConfigurationList = FE998E48182B5CB47DAA9A51 /* Build configuration list for PBXProject "WOVNapparel" */;
 			developmentRegion = en;
@@ -429,6 +427,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = WOVNapparel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = MHZ56UTH96;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "\"WOVN requires camera access to perform 3D spatial sizing and skin tone analysis.\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -449,6 +448,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = WOVNapparel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = MHZ56UTH96;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "\"WOVN requires camera access to perform 3D spatial sizing and skin tone analysis.\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
