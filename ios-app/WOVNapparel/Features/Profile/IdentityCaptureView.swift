@@ -9,45 +9,39 @@ struct IdentityCaptureView: View {
     
     var body: some View {
         ZStack {
-            // Sleek animated background to make the glass visible
-            Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
+            // Minimalist Garment Catalog Background (#f4f4f5)
+            Color(red: 244/255, green: 244/255, blue: 245/255).ignoresSafeArea()
             
-            GeometryReader { proxy in
-                Circle()
-                    .fill(LinearGradient(colors: [.blue.opacity(0.2), .purple.opacity(0.3)], startPoint: .bottomTrailing, endPoint: .topLeading))
-                    .frame(width: proxy.size.width * 1.5)
-                    .blur(radius: 60)
-                    .offset(x: -proxy.size.width * 0.2, y: -proxy.size.height * 0.2)
-            }
-            .ignoresSafeArea()
-            
-            VStack(spacing: 20) {
+            VStack(spacing: 0) {
+                // Top Navigation
                 HStack {
                     Button(action: {
                         withAnimation { appState.currentRoute = .onboardingBasic }
                     }) {
-                        Image(systemName: "chevron.left")
-                            .font(.title3)
-                            .foregroundColor(.secondary)
+                        Image(systemName: "arrow.left")
+                            .font(.system(size: 20, weight: .light))
+                            .foregroundColor(Color.zinc900)
                             .padding()
-                            .background(.ultraThinMaterial)
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.white.opacity(0.5), lineWidth: 1))
-                            .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
                     }
                     Spacer()
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 8)
                 
-                Text("Identity Capture")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                
-                Text("For Gemini to generate a hyper-realistic Virtual Try-On, we need high-resolution reference photos of your face and full body.")
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 30)
+                VStack(spacing: 16) {
+                    Text("Identity Capture")
+                        .font(.system(size: 44, weight: .regular, design: .serif))
+                        .foregroundColor(Color.zinc900)
+                        .multilineTextAlignment(.center)
+                    
+                    Text("For Gemini to generate a hyper-realistic Virtual Try-On, we need high-resolution reference photos of your face and full body.")
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(Color.zinc500)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                        .lineSpacing(4)
+                }
+                .padding(.top, 10)
+                .padding(.bottom, 40)
                 
                 VStack(spacing: 16) {
                     
@@ -58,39 +52,38 @@ struct IdentityCaptureView: View {
                         HStack(spacing: 16) {
                             if let face = appState.faceImage, let profile = appState.profileImage {
                                 HStack(spacing: -10) {
-                                    Image(uiImage: face).resizable().scaledToFill().frame(width: 50, height: 50).clipShape(Circle()).overlay(Circle().stroke(Color.green, lineWidth: 2))
-                                    Image(uiImage: profile).resizable().scaledToFill().frame(width: 50, height: 50).clipShape(Circle()).overlay(Circle().stroke(Color.green, lineWidth: 2))
+                                    Image(uiImage: face).resizable().scaledToFill().frame(width: 40, height: 40).clipShape(Circle()).overlay(Circle().stroke(Color.zinc200, lineWidth: 1))
+                                    Image(uiImage: profile).resizable().scaledToFill().frame(width: 40, height: 40).clipShape(Circle()).overlay(Circle().stroke(Color.zinc200, lineWidth: 1))
                                 }
                             } else {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.blue.opacity(0.1))
-                                        .frame(width: 50, height: 50)
+                                        .fill(Color(white: 0.96))
+                                        .frame(width: 40, height: 40)
                                     Image(systemName: "faceid")
-                                        .font(.title3)
-                                        .foregroundColor(.blue)
+                                        .font(.system(size: 16))
+                                        .foregroundColor(Color.zinc900)
                                 }
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Guided Face Scan")
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
+                                Text("GUIDED FACE SCAN")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .tracking(1.5)
+                                    .foregroundColor(Color.zinc900)
                                 Text("Face ID style automated capture")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Color.zinc500)
                             }
                             Spacer()
                             
-                            Image(systemName: (appState.faceImage != nil && appState.profileImage != nil) ? "checkmark.circle.fill" : "chevron.right")
-                                .font(.title2)
-                                .foregroundColor((appState.faceImage != nil && appState.profileImage != nil) ? .green : Color(uiColor: .tertiaryLabel))
+                            Image(systemName: (appState.faceImage != nil && appState.profileImage != nil) ? "checkmark" : "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor((appState.faceImage != nil && appState.profileImage != nil) ? Color.zinc900 : Color.zinc400)
                         }
                         .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(20)
-                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.5), lineWidth: 1))
-                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
+                        .background(Color.white)
+                        .border(Color.zinc200, width: 1)
                     }
                     
                     // Full Body Photo Button
@@ -99,37 +92,36 @@ struct IdentityCaptureView: View {
                     }) {
                         HStack(spacing: 16) {
                             if let bodyImg = appState.bodyImage {
-                                Image(uiImage: bodyImg).resizable().scaledToFill().frame(width: 50, height: 50).clipShape(Circle()).overlay(Circle().stroke(Color.green, lineWidth: 2))
+                                Image(uiImage: bodyImg).resizable().scaledToFill().frame(width: 40, height: 40).clipShape(Circle()).overlay(Circle().stroke(Color.zinc200, lineWidth: 1))
                             } else {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.purple.opacity(0.1))
-                                        .frame(width: 50, height: 50)
+                                        .fill(Color(white: 0.96))
+                                        .frame(width: 40, height: 40)
                                     Image(systemName: "figure.stand")
-                                        .font(.title3)
-                                        .foregroundColor(.purple)
+                                        .font(.system(size: 16))
+                                        .foregroundColor(Color.zinc900)
                                 }
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Full Body Photo")
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
+                                Text("FULL BODY PHOTO")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .tracking(1.5)
+                                    .foregroundColor(Color.zinc900)
                                 Text("Stand against a blank wall")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Color.zinc500)
                             }
                             Spacer()
                             
-                            Image(systemName: appState.bodyImage != nil ? "checkmark.circle.fill" : "camera.circle")
-                                .font(.title2)
-                                .foregroundColor(appState.bodyImage != nil ? .green : Color(uiColor: .tertiaryLabel))
+                            Image(systemName: appState.bodyImage != nil ? "checkmark" : "camera")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(appState.bodyImage != nil ? Color.zinc900 : Color.zinc400)
                         }
                         .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(20)
-                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.5), lineWidth: 1))
-                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
+                        .background(Color.white)
+                        .border(Color.zinc200, width: 1)
                     }
                 }
                 .padding(.horizontal, 24)
@@ -139,18 +131,16 @@ struct IdentityCaptureView: View {
                 Button(action: {
                     showHardwareSelector = true
                 }) {
-                    Text("Next: 3D Body Scan")
-                        .font(.headline)
-                        .foregroundColor(allPhotosCaptured ? .primary : .secondary)
+                    Text("NEXT: 3D BODY SCAN")
+                        .font(.system(size: 12, weight: .semibold))
+                        .tracking(2)
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(20)
-                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.8), lineWidth: 1))
-                        .shadow(color: .black.opacity(0.05), radius: 15, y: 5)
+                        .padding(.vertical, 18)
+                        .background(allPhotosCaptured ? Color.zinc900 : Color.zinc300)
                 }
                 .disabled(!allPhotosCaptured)
-                .padding(.horizontal, 30)
+                .padding(.horizontal, 24)
                 .padding(.bottom, 40)
             }
         }
