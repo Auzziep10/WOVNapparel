@@ -5,45 +5,38 @@ struct ProfileDashboardView: View {
     
     var body: some View {
         ZStack {
-            Color(uiColor: .systemGroupedBackground).ignoresSafeArea()
-            
-            GeometryReader { proxy in
-                Circle()
-                    .fill(LinearGradient(colors: [.blue.opacity(0.1), .purple.opacity(0.2)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .frame(width: proxy.size.width * 1.5)
-                    .blur(radius: 60)
-                    .offset(x: -proxy.size.width * 0.2, y: -proxy.size.height * 0.2)
-            }
-            .ignoresSafeArea()
+            // Minimalist Garment Catalog Background
+            Color(red: 244/255, green: 244/255, blue: 245/255).ignoresSafeArea()
             
             VStack(spacing: 30) {
                 VStack(spacing: 8) {
                     Text("Identity Locked In")
-                        .font(.system(size: 36, weight: .black, design: .rounded))
-                        .foregroundColor(.primary)
+                        .font(.system(size: 36, weight: .regular, design: .serif))
+                        .foregroundColor(Color(red: 24/255, green: 24/255, blue: 27/255))
                     
                     Text("Your spatial profile and reference photos are ready for hyper-realistic Virtual Try-On.")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(Color(red: 113/255, green: 113/255, blue: 122/255))
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 30)
+                        .padding(.horizontal, 40)
+                        .lineSpacing(4)
                 }
                 .padding(.top, 40)
                 
                 // Photo Grid
                 HStack(spacing: 16) {
                     if let face = appState.faceImage {
-                        PhotoThumbnail(image: face, label: "Face")
+                        PhotoThumbnail(image: face, label: "FACE", rotate180: true)
                     }
                     if let profile = appState.profileImage {
-                        PhotoThumbnail(image: profile, label: "Profile")
+                        PhotoThumbnail(image: profile, label: "PROFILE", rotate180: true)
                     }
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 24)
                 
                 if let body = appState.bodyImage {
-                    PhotoThumbnail(image: body, label: "Full Body")
-                        .frame(maxWidth: 200, maxHeight: 300)
+                    PhotoThumbnail(image: body, label: "FULL BODY", rotate180: false)
+                        .frame(maxWidth: 250, maxHeight: 350)
                 }
                 
                 Spacer()
@@ -53,17 +46,15 @@ struct ProfileDashboardView: View {
                         appState.currentRoute = .occasionSelection
                     }
                 }) {
-                    Text("Start Try-On")
-                        .font(.headline)
-                        .foregroundColor(.primary)
+                    Text("START TRY-ON")
+                        .font(.system(size: 12, weight: .semibold))
+                        .tracking(2)
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(.ultraThinMaterial)
-                        .cornerRadius(20)
-                        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.8), lineWidth: 1))
-                        .shadow(color: .black.opacity(0.05), radius: 15, y: 5)
+                        .padding(.vertical, 18)
+                        .background(Color(red: 24/255, green: 24/255, blue: 27/255))
                 }
-                .padding(.horizontal, 30)
+                .padding(.horizontal, 24)
                 .padding(.bottom, 40)
             }
         }
@@ -74,6 +65,7 @@ struct ProfileDashboardView: View {
 struct PhotoThumbnail: View {
     let image: UIImage
     let label: String
+    let rotate180: Bool
     
     var body: some View {
         VStack(spacing: 8) {
@@ -82,14 +74,14 @@ struct PhotoThumbnail: View {
                 .scaledToFill()
                 .frame(maxWidth: .infinity)
                 .aspectRatio(1.0, contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.5), lineWidth: 2))
-                .shadow(color: .black.opacity(0.1), radius: 10, y: 5)
+                .rotationEffect(rotate180 ? .degrees(180) : .zero) // Fix ARKit upside down
+                .clipShape(RoundedRectangle(cornerRadius: 8)) // Slight curve for photos
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color(red: 228/255, green: 228/255, blue: 231/255), lineWidth: 1))
             
             Text(label)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundColor(.secondary)
+                .font(.system(size: 10, weight: .semibold))
+                .tracking(1.5)
+                .foregroundColor(Color(red: 113/255, green: 113/255, blue: 122/255))
         }
     }
 }
