@@ -23,7 +23,7 @@ struct ImagePicker: UIViewControllerRepresentable {
             // Pass-through view wrapper to only intercept touches on the button
             class PassThroughView: UIView {
                 override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-                    let view = super.hitTest(point, with event: event)
+                    let view = super.hitTest(point, with: event)
                     return view == self ? nil : view
                 }
             }
