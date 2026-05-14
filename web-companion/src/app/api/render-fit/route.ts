@@ -22,16 +22,16 @@ export async function POST(request: Request) {
     // Fetch user data from Firestore
     const userDoc = await db.collection('users').doc(userId).get();
     
-    if (!userDoc.exists) {
-      return NextResponse.json(
-        { success: false, error: 'User identity data not found in Firebase' },
-        { status: 404 }
-      );
-    }
+    let photos = {};
+    let metrics = {};
     
-    const userData = userDoc.data()!;
-    const photos = userData.photos || {};
-    const metrics = userData.measurements || {};
+    if (userDoc.exists) {
+      const userData = userDoc.data()!;
+      photos = userData.photos || {};
+      metrics = userData.measurements || {};
+    } else {
+      console.warn(`[API WARNING] User ${userId} not found in Firebase. Proceeding with default values for demo.`);
+    }
     
     console.log(`[API] Triggering synthesis for User: ${userId}, Occasion: ${occasion}, Garment: ${garmentId || 'DEFAULT'}`);
 
