@@ -5,6 +5,11 @@ struct CameraView: View {
     @AppStorage("userHeightInput") private var userHeightInput: String = ""
     
     @State private var technicalImage: UIImage? = nil
+    @State private var isProcessing = true
+    @State private var scanLineOffset: CGFloat = -200
+    @State private var processText = "Analyzing Spatial Proportions..."
+    
+    private let sizingEngine = SpatialSizingEngine()
     
     var body: some View {
         ZStack {
