@@ -81,8 +81,7 @@ struct OccasionSelectionView: View {
                 Spacer()
                 Button(action: {
                     let selectedOccasion = occasions[selectedIndex]
-                    // We don't have tech packs fetched yet, so we just mock routing for now
-                    appState.currentRoute = .tryOn(techPackId: "mock_\(selectedOccasion)")
+                    appState.uploadIdentityData(selectedOccasion: selectedOccasion)
                 }) {
                     Text("Select Occasion")
                         .font(.headline)
@@ -95,8 +94,34 @@ struct OccasionSelectionView: View {
                 }
                 .padding(.horizontal, 40)
                 .padding(.bottom, 40)
+                .disabled(appState.isUploadingToCloud)
+            }
+            
+            // Cloud Sync Overlay
+            if appState.isUploadingToCloud {
+                ZStack {
+                    Color.black.opacity(0.6).ignoresSafeArea()
+                    
+                    VStack(spacing: 24) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(1.5)
+                        
+                        Text(appState.uploadProgressText)
+                            .font(.system(size: 14, weight: .medium, design: .serif))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(40)
+                    .background(Color(red: 24/255, green: 24/255, blue: 27/255))
+                    .cornerRadius(16)
+                    .shadow(radius: 20)
+                }
+                .transition(.opacity)
+                .zIndex(100)
             }
         }
         .preferredColorScheme(.light)
+        .animation(.easeInOut, value: appState.isUploadingToCloud)
     }
 }

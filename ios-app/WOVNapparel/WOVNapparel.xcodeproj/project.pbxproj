@@ -13,7 +13,9 @@
 		1F2F6B2CEE013151D8B7CFE2 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3B4D64B80E17CE6629E84B /* CameraManager.swift */; };
 		21C129D19F6C30D157E69F52 /* ProfileDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA861E6535D8D0ABDD83D9C5 /* ProfileDashboardView.swift */; };
 		24105CC3F575672FFF9D889F /* ARScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85BE6BF4ED35C44272358267 /* ARScannerView.swift */; };
+		335704A060ECD42864B851E5 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 91BA4DFF914AA7FC4D9668A7 /* GoogleService-Info.plist */; };
 		4314B21600E4E6B2C16B9F37 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6254B8500BD45340491BFEA /* ImagePicker.swift */; };
+		48BC8B9D4893751AD0286591 /* FirebaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46F548F2753F9AA38F148C30 /* FirebaseManager.swift */; };
 		4AC5CC6CE66DA5C483F3AC08 /* WOVNapparelApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95974DC5BA0476C873E8AC8 /* WOVNapparelApp.swift */; };
 		74274AA3CF953E22067CAFA2 /* BodyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E238E9D541BDD3E39CADE29 /* BodyScannerView.swift */; };
 		74518C85D8180B67C845037A /* LiDARSizingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF445875DF6CCC6D9C8D09E7 /* LiDARSizingEngine.swift */; };
@@ -33,7 +35,8 @@
 
 /* Begin PBXFileReference section */
 		1D61BC284C66D941BC3FA182 /* OccasionSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OccasionSelectionView.swift; sourceTree = "<group>"; };
-		4F75C4DC3F7091F292F8B52A /* WOVNapparel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WOVNapparel.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		46F548F2753F9AA38F148C30 /* FirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseManager.swift; sourceTree = "<group>"; };
+		4F75C4DC3F7091F292F8B52A /* WOVNapparel.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WOVNapparel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B26CE6D5049EDB66C973417 /* AppFlowState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFlowState.swift; sourceTree = "<group>"; };
 		6D8E1E248DC72091BF38EDAD /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
 		6E238E9D541BDD3E39CADE29 /* BodyScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyScannerView.swift; sourceTree = "<group>"; };
@@ -41,6 +44,7 @@
 		727D1DF55695337E97912467 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		85BE6BF4ED35C44272358267 /* ARScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARScannerView.swift; sourceTree = "<group>"; };
 		85F5B849B35BAB8EFC222E48 /* OccasionDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OccasionDashboard.swift; sourceTree = "<group>"; };
+		91BA4DFF914AA7FC4D9668A7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		A073E8E0508DF442274A6AFB /* GuidedFaceCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedFaceCaptureView.swift; sourceTree = "<group>"; };
 		A6254B8500BD45340491BFEA /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		A70908705E6BBEF247C7A4E1 /* SpatialSizingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialSizingEngine.swift; sourceTree = "<group>"; };
@@ -82,6 +86,7 @@
 			children = (
 				727D1DF55695337E97912467 /* Assets.xcassets */,
 				A956FB0F32E6A1717737D95A /* ContentView.swift */,
+				91BA4DFF914AA7FC4D9668A7 /* GoogleService-Info.plist */,
 				B95974DC5BA0476C873E8AC8 /* WOVNapparelApp.swift */,
 			);
 			path = App;
@@ -151,6 +156,7 @@
 			isa = PBXGroup;
 			children = (
 				5B26CE6D5049EDB66C973417 /* AppFlowState.swift */,
+				46F548F2753F9AA38F148C30 /* FirebaseManager.swift */,
 				A6254B8500BD45340491BFEA /* ImagePicker.swift */,
 			);
 			path = Core;
@@ -199,6 +205,8 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
 			};
 			buildConfigurationList = FE998E48182B5CB47DAA9A51 /* Build configuration list for PBXProject "WOVNapparel" */;
 			developmentRegion = en;
@@ -228,6 +236,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7461B72C3C85504595FFF33F /* Assets.xcassets in Resources */,
+				335704A060ECD42864B851E5 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -245,6 +254,7 @@
 				7F02DFCB7BF72E70F1C8459C /* CameraPreview.swift in Sources */,
 				9E9AC7D08190464FFC158EFA /* CameraView.swift in Sources */,
 				90E3FC20E77189E5992E5812 /* ContentView.swift in Sources */,
+				48BC8B9D4893751AD0286591 /* FirebaseManager.swift in Sources */,
 				14E02E90AB68B267F1B997CC /* GuidedFaceCaptureView.swift in Sources */,
 				0FAF70CD1EBB1787B6A630EA /* IdentityCaptureView.swift in Sources */,
 				4314B21600E4E6B2C16B9F37 /* ImagePicker.swift in Sources */,
@@ -386,7 +396,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = MHZ56UTH96;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "\"WOVN requires camera access to perform 3D spatial sizing and skin tone analysis.\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -406,7 +415,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = MHZ56UTH96;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "\"WOVN requires camera access to perform 3D spatial sizing and skin tone analysis.\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
