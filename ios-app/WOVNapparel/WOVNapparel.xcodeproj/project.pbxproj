@@ -19,6 +19,7 @@
 		48BC8B9D4893751AD0286591 /* FirebaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46F548F2753F9AA38F148C30 /* FirebaseManager.swift */; };
 		4AC5CC6CE66DA5C483F3AC08 /* WOVNapparelApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95974DC5BA0476C873E8AC8 /* WOVNapparelApp.swift */; };
 		514654E067B1A9FB24AF617F /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E567356E5494035F3C1EA858 /* AuthenticationView.swift */; };
+		6D0AE4BD5FC87911501D683A /* ARQuickLookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCCE955C5569D0E717EA370 /* ARQuickLookView.swift */; };
 		74274AA3CF953E22067CAFA2 /* BodyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E238E9D541BDD3E39CADE29 /* BodyScannerView.swift */; };
 		74518C85D8180B67C845037A /* LiDARSizingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF445875DF6CCC6D9C8D09E7 /* LiDARSizingEngine.swift */; };
 		7461B72C3C85504595FFF33F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 727D1DF55695337E97912467 /* Assets.xcassets */; };
@@ -39,6 +40,7 @@
 /* Begin PBXFileReference section */
 		11139B38687CDEBB85F87327 /* TryOnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnView.swift; sourceTree = "<group>"; };
 		1D61BC284C66D941BC3FA182 /* OccasionSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OccasionSelectionView.swift; sourceTree = "<group>"; };
+		2BCCE955C5569D0E717EA370 /* ARQuickLookView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARQuickLookView.swift; sourceTree = "<group>"; };
 		46F548F2753F9AA38F148C30 /* FirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseManager.swift; sourceTree = "<group>"; };
 		4F75C4DC3F7091F292F8B52A /* WOVNapparel.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WOVNapparel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B26CE6D5049EDB66C973417 /* AppFlowState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFlowState.swift; sourceTree = "<group>"; };
@@ -150,6 +152,7 @@
 		BAFF0EF0FEBE10AD5AF8923C /* Profile */ = {
 			isa = PBXGroup;
 			children = (
+				2BCCE955C5569D0E717EA370 /* ARQuickLookView.swift */,
 				A073E8E0508DF442274A6AFB /* GuidedFaceCaptureView.swift */,
 				E6C3CC5FF064F5430661DA82 /* IdentityCaptureView.swift */,
 				AA861E6535D8D0ABDD83D9C5 /* ProfileDashboardView.swift */,
@@ -273,6 +276,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D0AE4BD5FC87911501D683A /* ARQuickLookView.swift in Sources */,
 				24105CC3F575672FFF9D889F /* ARScannerView.swift in Sources */,
 				EA88532B9E5AC00551B6AD3E /* AppFlowState.swift in Sources */,
 				514654E067B1A9FB24AF617F /* AuthenticationView.swift in Sources */,

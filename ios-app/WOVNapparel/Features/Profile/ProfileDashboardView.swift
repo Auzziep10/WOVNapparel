@@ -1,7 +1,9 @@
 import SwiftUI
+import RealityKit
 
 struct ProfileDashboardView: View {
     @EnvironmentObject var appState: AppFlowState
+    @State private var showARQuickLook = false
     
     var body: some View {
         ZStack {
@@ -41,7 +43,65 @@ struct ProfileDashboardView: View {
                             HeroPhotoThumbnail(image: bodyImage, label: "FULL BODY")
                         }
                         
+                        // 3D SPATIAL SCAN (RealityKit + QuickLook)
+                        if let modelURL = appState.scannedModelURL {
+                            VStack(spacing: 16) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.white)
+                                        .frame(maxWidth: UIScreen.main.bounds.width - 48, minHeight: 300)
+                                        .shadow(color: .black.opacity(0.08), radius: 20, y: 10)
+                                    
+                                    if #available(iOS 17.0, *) {
+                                        Model3D(url: modelURL) { model in
+                                            model
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                        } placeholder: {
+                                            ProgressView()
+                                        }
+                                        .frame(width: 250, height: 250)
+                                    } else {
+                                        Text("3D Viewer requires iOS 17")
+                                            .foregroundColor(.gray)
+                                    }
+                                }
+                                
+                                HStack(spacing: 16) {
+                                    Text("SPATIAL 3D SCAN")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .tracking(1.5)
+                                        .foregroundColor(Color(red: 161/255, green: 161/255, blue: 170/255))
+                                    
+                                    Spacer()
+                                    
+                                    Button(action: {
+                                        showARQuickLook = true
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "arkit")
+                                            Text("VIEW IN AR")
+                                        }
+                                        .font(.system(size: 10, weight: .bold))
+                                        .tracking(1.5)
+                                        .foregroundColor(.black)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(Color(red: 228/255, green: 228/255, blue: 231/255))
+                                        .cornerRadius(20)
+                                    }
+                                }
+                                .padding(.horizontal, 24)
+                            }
+                            .padding(.top, 20)
+                        }
+                        
                         Spacer(minLength: 40)
+                    }
+                }
+                .sheet(isPresented: $showARQuickLook) {
+                    if let modelURL = appState.scannedModelURL {
+                        ARQuickLookView(url: modelURL)
                     }
                 }
                 
