@@ -1,194 +1,115 @@
 import SwiftUI
-import AVFoundation
-import Vision
-import FirebaseFirestore
 
 struct CameraView: View {
-    @StateObject private var cameraManager = CameraManager()
-    @State private var isProcessing = false
-    @State private var matchResult: String? = nil
-    @State private var skinToneColor: Color? = nil
+    @EnvironmentObject var appState: AppFlowState
+    @AppStorage("userHeightInput") private var userHeightInput: String = ""
     
-    // Core logic engines
+    @State private var isProcessing = true
+    @State private var scanLineOffset: CGFloat = -200
+    @State private var processText = "Analyzing Spatial Proportions..."
+    
     private let sizingEngine = SpatialSizingEngine()
-    private let colorAnalyzer = SpectrophotometricSkinAnalyzer()
     
     var body: some View {
         ZStack {
-            if cameraManager.isCameraSetup {
-                CameraPreview(cameraManager: cameraManager)
-                    .ignoresSafeArea()
+            // Minimalist Garment Catalog Background
+            Color(red: 244/255, green: 244/255, blue: 245/255).ignoresSafeArea()
+            
+            VStack(spacing: 30) {
+                Text("Pseudo-3D Synthesis")
+                    .font(.system(size: 32, weight: .regular, design: .serif))
+                    .foregroundColor(Color(red: 24/255, green: 24/255, blue: 27/255))
+                    .padding(.top, 40)
                 
-                // Framing Guide
-                VStack {
-                    Spacer()
+                // Display the captured full body photo with a scanning effect
+                if let bodyImage = appState.bodyImage {
+                    ZStack {
+                        Image(uiImage: bodyImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 400)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .shadow(color: .black.opacity(0.1), radius: 10, y: 5)
+                        
+                        if isProcessing {
+                            // Holographic Scan Line
+                            Rectangle()
+                                .fill(LinearGradient(gradient: Gradient(colors: [.clear, .green.opacity(0.8), .clear]), startPoint: .top, endPoint: .bottom))
+                                .frame(height: 20)
+                                .offset(y: scanLineOffset)
+                                .animation(Animation.linear(duration: 1.5).repeatForever(autoreverses: true), value: scanLineOffset)
+                                .onAppear {
+                                    scanLineOffset = 200
+                                }
+                        }
+                    }
+                    .frame(maxHeight: 400)
+                } else {
                     Rectangle()
-                        .stroke(Color.white.opacity(0.5), style: StrokeStyle(lineWidth: 2, dash: [10]))
-                        .frame(width: 300, height: 400)
-                    Spacer()
+                        .fill(Color(white: 0.9))
+                        .frame(width: 250, height: 400)
+                        .overlay(Text("No Body Photo Found").foregroundColor(.gray))
                 }
-            } else {
-                Color.black.ignoresSafeArea()
-                ProgressView("Initializing Camera...")
-                    .foregroundColor(.white)
+                
+                VStack(spacing: 12) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                        .scaleEffect(1.2)
+                    
+                    Text(processText)
+                        .font(.system(size: 14, weight: .semibold))
+                        .tracking(1.5)
+                        .foregroundColor(Color(red: 113/255, green: 113/255, blue: 122/255))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                }
+                .padding(.top, 20)
+                
+                Spacer()
+            }
+        }
+        .preferredColorScheme(.light)
+        .onAppear {
+            processPseudo3DScan()
+        }
+    }
+    
+    private func processPseudo3DScan() {
+        Task {
+            // Simulate deep spatial analysis
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            
+            DispatchQueue.main.async {
+                self.processText = "Extrapolating Z-Axis Depth..."
             }
             
-            // UI Overlay
-            VStack {
-                Spacer()
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            
+            // Actually call the sizing engine if an image is available
+            if let image = appState.bodyImage?.cgImage {
+                let parsedHeight = Double(userHeightInput.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 170.0
                 
-                if isProcessing {
-                    VStack {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(1.5)
-                        Text("Running Spatial Decimation...")
-                            .foregroundColor(.white)
-                            .padding(.top, 10)
-                    }
-                    .padding(.bottom, 50)
-                } else if let result = matchResult {
-                    VStack {
-                        Text("Recommended Match")
-                            .font(.headline)
-                            .foregroundColor(.white.opacity(0.8))
-                        Text(result)
-                            .font(.system(size: 48, weight: .bold))
-                            .foregroundColor(.green)
-                            
-                        if let skinColor = skinToneColor {
-                            HStack {
-                                Circle()
-                                    .fill(skinColor)
-                                    .frame(width: 30, height: 30)
-                                    .overlay(Circle().stroke(Color.white, lineWidth: 2))
-                                Text("High Contrast Winter")
-                                    .font(.subheadline)
-                                    .foregroundColor(.white.opacity(0.9))
-                            }
-                            .padding(.top, 5)
-                        }
-                        
-                        Button("Retake") {
-                            matchResult = nil
-                            skinToneColor = nil
-                            cameraManager.capturedImage = nil
-                        }
-                        .padding(.top, 15)
-                        .foregroundColor(.white)
-                    }
-                    .padding()
-                    .background(Color.black.opacity(0.8))
-                    .cornerRadius(20)
-                    .padding(.bottom, 50)
-                } else {
-                    Button(action: {
-                        cameraManager.capturePhoto()
-                    }) {
-                        Circle()
-                            .stroke(Color.white, lineWidth: 4)
-                            .frame(width: 70, height: 70)
-                            .overlay(
-                                Circle()
-                                    .fill(Color.white)
-                                    .frame(width: 60, height: 60)
-                            )
-                    }
-                    .padding(.bottom, 50)
-                }
-            }
-        }
-        .onChange(of: cameraManager.capturedImage) { image in
-            if let image = image {
-                processImage(image)
-            }
-        }
-    }
-    
-    private func processImage(_ image: CGImage) {
-        isProcessing = true
-        
-        Task {
-            do {
-                let uiImage = UIImage(cgImage: image)
-                
-                // 1. Run local spatial sizing & color math safely
-                var userMetrics = [String: Double]()
+                // Fire and forget - stores metrics natively
                 do {
-                    userMetrics = try await sizingEngine.resolveUserSizing(userId: "demo_user", actualHeightCm: 180.0, image: image)
+                    appState.userMetrics = try await sizingEngine.resolveUserSizing(userId: "current_user", actualHeightCm: parsedHeight, image: image)
                 } catch {
-                    print("Skeletal Tracking Failed - using fallback defaults: \(error)")
+                    print("Sizing engine failed: \(error)")
                 }
-                
-                let labProfile = try? await colorAnalyzer.extractSkinChromaticProfile(from: uiImage)
-                
-                DispatchQueue.main.async {
-                    if let lab = labProfile, lab.count >= 3 {
-                        // Very rough mock LAB -> RGB for visual UI scaffold
-                        let l = Double(lab[0]) / 100.0
-                        self.skinToneColor = Color(red: l + 0.1, green: l - 0.1, blue: l - 0.2) 
-                    }
-                }
-                
-                // 2. Fetch Match from Vercel Backend
-                try await fetchVercelMatch(metrics: userMetrics, skinToneLab: labProfile)
-                
-            } catch {
-                print("Sizing Error: \(error)")
-                DispatchQueue.main.async {
-                    self.matchResult = error.localizedDescription
-                    self.isProcessing = false
+            }
+            
+            DispatchQueue.main.async {
+                self.processText = "Synthesis Complete."
+                self.isProcessing = false
+            }
+            
+            try? await Task.sleep(nanoseconds: 800_000_000)
+            
+            DispatchQueue.main.async {
+                withAnimation {
+                    // Route to Profile Dashboard for final review!
+                    appState.currentRoute = .profileReview
                 }
             }
         }
     }
-    
-    private func fetchVercelMatch(metrics: [String: Double], skinToneLab: [Float]?) async throws {
-        // Build payload
-        var payload: [String: Any] = [
-            "techPackId": "demo_tech_pack", // In a real app, user selects a garment first
-            "userMetrics": [
-                "chestCm": metrics["chestCm"] ?? 100.0,
-                "waistCm": metrics["waistCm"] ?? 85.0,
-                "hipsCm": metrics["hipsCm"] ?? 95.0,
-                "chromaticContrastIndex": 40.0
-            ]
-        ]
-        
-        if let lab = skinToneLab {
-            payload["userSkinToneLab"] = lab
-        }
-        
-        // Point to the secure Vercel production deployment
-        guard let url = URL(string: "https://wovn-apparel.vercel.app/api/match") else { return }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-        
-        let (data, _) = try await URLSession.shared.data(for: request)
-        let response = try JSONDecoder().decode(MatchResponse.self, from: data)
-        
-        DispatchQueue.main.async {
-            if response.success, let matchData = response.data {
-                self.matchResult = "Size \(matchData.recommendedSize ?? "Unknown")"
-            } else {
-                self.matchResult = response.error ?? "Match Error"
-            }
-            self.isProcessing = false
-        }
-    }
-}
-
-// API Response Models
-struct MatchResponse: Codable {
-    let success: Bool
-    let data: MatchData?
-    let error: String?
-}
-
-struct MatchData: Codable {
-    let recommendedSize: String?
-    let confidenceScore: Double?
-    let recommendedColorway: String?
 }
