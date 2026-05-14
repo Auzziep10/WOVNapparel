@@ -49,33 +49,28 @@ struct GuidedFaceCaptureView: View {
             )
             .ignoresSafeArea()
             
-            // Face ID Style Mask (Perfect Circle with Frosted Glass)
-            GeometryReader { proxy in
-                let circleSize = min(proxy.size.width, proxy.size.height) * 0.75
+            // Face ID Style Mask (Perfect Circle alignment)
+            let circleSize = UIScreen.main.bounds.width * 0.75
+            
+            ZStack {
+                // Crisp semi-transparent background to let camera peek through slightly, no heavy blur
+                Color(red: 244/255, green: 244/255, blue: 245/255).opacity(0.95)
+                    .mask(
+                        Rectangle()
+                            .overlay(
+                                Circle()
+                                    .frame(width: circleSize, height: circleSize)
+                                    .blendMode(.destinationOut)
+                            )
+                    )
                 
-                ZStack {
-                    // Premium frosted glass outside the circle
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .mask(
-                            Rectangle()
-                                .overlay(
-                                    Circle()
-                                        .frame(width: circleSize, height: circleSize)
-                                        .blendMode(.destinationOut)
-                                )
-                        )
-                        .ignoresSafeArea()
-                    
-                    // The dashed tracker ring
-                    Circle()
-                        .stroke(progressColor, style: StrokeStyle(lineWidth: 6, lineCap: .round, dash: [10, 15]))
-                        .frame(width: circleSize + 20, height: circleSize + 20)
-                        .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
-                        .animation(.easeInOut, value: captureState)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // The dashed tracker ring
+                Circle()
+                    .stroke(progressColor, style: StrokeStyle(lineWidth: 6, lineCap: .round, dash: [10, 15]))
+                    .frame(width: circleSize + 20, height: circleSize + 20)
+                    .animation(.easeInOut, value: captureState)
             }
+            .ignoresSafeArea()
             
             // Minimalist Top UI
             VStack {
