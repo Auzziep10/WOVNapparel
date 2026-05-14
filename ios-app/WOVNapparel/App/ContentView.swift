@@ -30,7 +30,7 @@ struct ContentView: View {
                         Text("Occasion Selection requires iOS 17")
                     }
                 case .tryOn(let techPackId):
-                    Text("Try-On View for \(techPackId)")
+                    TryOnView(occasion: techPackId)
                 }
             }
         }

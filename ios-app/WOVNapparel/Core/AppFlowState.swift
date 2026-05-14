@@ -31,6 +31,10 @@ class AppFlowState: ObservableObject {
     @Published var isUploadingToCloud: Bool = false
     @Published var uploadProgressText: String = ""
     
+    // Synthesis State
+    @Published var isSynthesizing: Bool = false
+    @Published var generatedImageURL: URL? = nil
+    
     func completeOnboarding() {
         hasProfile = true
         currentRoute = .profileReview
@@ -38,12 +42,10 @@ class AppFlowState: ObservableObject {
     
     // MARK: - OAuth Handlers
     func handleAppleSignInRequest(_ request: ASAuthorizationAppleIDRequest) {
-        // Implement Apple nonce & scope request
         request.requestedScopes = [.fullName, .email]
     }
     
     func handleAppleSignInCompletion(_ result: Result<ASAuthorization, Error>) {
-        // Implement Apple credential parsing and Firebase auth
         switch result {
         case .success(let authorization):
             print("Apple Sign-In Success: \(authorization)")
@@ -54,7 +56,6 @@ class AppFlowState: ObservableObject {
     }
     
     func signInWithGoogle() {
-        // Implement Google SDK sign in
         print("Google Sign In clicked")
     }
     
@@ -94,13 +95,55 @@ class AppFlowState: ObservableObject {
                 try await Task.sleep(nanoseconds: 1_000_000_000)
                 
                 self.isUploadingToCloud = false
-                self.currentRoute = .tryOn(techPackId: "mock_\(selectedOccasion)")
+                self.currentRoute = .tryOn(techPackId: selectedOccasion)
                 
             } catch {
                 print("Failed to sync identity: \(error)")
                 self.uploadProgressText = "Sync Failed. Retrying..."
                 try? await Task.sleep(nanoseconds: 2_000_000_000)
                 self.isUploadingToCloud = false
+            }
+        }
+    }
+    
+    // MARK: - Synthesis Trigger
+    func triggerSynthesis(occasion: String) {
+        guard let userId = FirebaseAuth.Auth.auth().currentUser?.uid else { return }
+        
+        isSynthesizing = true
+        generatedImageURL = nil
+        
+        Task { @MainActor in
+            do {
+                guard let url = URL(string: "http://localhost:3000/api/render-fit") else { return }
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                
+                let payload = ["userId": userId, "occasion": occasion]
+                request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+                
+                let (data, response) = try await URLSession.shared.data(for: request)
+                
+                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                    print("Synthesis API Error")
+                    isSynthesizing = false
+                    return
+                }
+                
+                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let mockRenderUrlString = json["mockRenderUrl"] as? String,
+                   let finalURL = URL(string: mockRenderUrlString) {
+                    
+                    // Artificial delay to simulate heavy generation
+                    try await Task.sleep(nanoseconds: 2_000_000_000)
+                    self.generatedImageURL = finalURL
+                }
+                
+                self.isSynthesizing = false
+            } catch {
+                print("Failed to trigger synthesis: \(error)")
+                self.isSynthesizing = false
             }
         }
     }

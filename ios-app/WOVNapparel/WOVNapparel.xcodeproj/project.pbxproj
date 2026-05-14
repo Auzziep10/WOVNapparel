@@ -32,10 +32,12 @@
 		BD5D343A2793744D249E21FF /* SpatialSizingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70908705E6BBEF247C7A4E1 /* SpatialSizingEngine.swift */; };
 		C262AC778143BCFE647C1750 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 29F1EDEB97A8C99BD090100F /* FirebaseFirestore */; };
 		CD0B678F8E262FC3844D54B0 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 352414B7A0293A7D9F5780DD /* FirebaseStorage */; };
+		D28260BB449B9FBEA67D07F3 /* TryOnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11139B38687CDEBB85F87327 /* TryOnView.swift */; };
 		EA88532B9E5AC00551B6AD3E /* AppFlowState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B26CE6D5049EDB66C973417 /* AppFlowState.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		11139B38687CDEBB85F87327 /* TryOnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnView.swift; sourceTree = "<group>"; };
 		1D61BC284C66D941BC3FA182 /* OccasionSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OccasionSelectionView.swift; sourceTree = "<group>"; };
 		46F548F2753F9AA38F148C30 /* FirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseManager.swift; sourceTree = "<group>"; };
 		4F75C4DC3F7091F292F8B52A /* WOVNapparel.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = WOVNapparel.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -96,6 +98,14 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		60D1D169FFE96B9EF1DE2C45 /* TryOn */ = {
+			isa = PBXGroup;
+			children = (
+				11139B38687CDEBB85F87327 /* TryOnView.swift */,
+			);
+			path = TryOn;
+			sourceTree = "<group>";
+		};
 		84074101B7F41691257A8E7B /* Spectrophotometry */ = {
 			isa = PBXGroup;
 			children = (
@@ -132,6 +142,7 @@
 				BAFF0EF0FEBE10AD5AF8923C /* Profile */,
 				D2C60B637DA5727B38775101 /* Sizing */,
 				84074101B7F41691257A8E7B /* Spectrophotometry */,
+				60D1D169FFE96B9EF1DE2C45 /* TryOn */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -281,6 +292,7 @@
 				B35F65E2C801C872CBD94C5F /* ProfileSetupView.swift in Sources */,
 				BD5D343A2793744D249E21FF /* SpatialSizingEngine.swift in Sources */,
 				144EAC41BEB013E4EDA0C453 /* SpectrophotometricSkinAnalyzer.swift in Sources */,
+				D28260BB449B9FBEA67D07F3 /* TryOnView.swift in Sources */,
 				4AC5CC6CE66DA5C483F3AC08 /* WOVNapparelApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
