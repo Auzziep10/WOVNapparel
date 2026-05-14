@@ -25,7 +25,7 @@ struct GuidedFaceCaptureView: View {
     
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color(red: 244/255, green: 244/255, blue: 245/255).ignoresSafeArea()
             
             // The AR View
             ARFaceTrackingViewContainer(
@@ -49,13 +49,14 @@ struct GuidedFaceCaptureView: View {
             )
             .ignoresSafeArea()
             
-            // Face ID Style Mask (Perfect Circle)
+            // Face ID Style Mask (Perfect Circle with Frosted Glass)
             GeometryReader { proxy in
                 let circleSize = min(proxy.size.width, proxy.size.height) * 0.75
                 
                 ZStack {
-                    // Darken everything outside the circle
-                    Color.black
+                    // Premium frosted glass outside the circle
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
                         .mask(
                             Rectangle()
                                 .overlay(
@@ -70,6 +71,7 @@ struct GuidedFaceCaptureView: View {
                     Circle()
                         .stroke(progressColor, style: StrokeStyle(lineWidth: 6, lineCap: .round, dash: [10, 15]))
                         .frame(width: circleSize + 20, height: circleSize + 20)
+                        .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
                         .animation(.easeInOut, value: captureState)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -78,28 +80,29 @@ struct GuidedFaceCaptureView: View {
             // Minimalist Top UI
             VStack {
                 Text(instructionTitle)
-                    .font(.system(size: 28, weight: .bold, design: .default))
-                    .foregroundColor(.white)
+                    .font(.system(size: 32, weight: .regular, design: .serif))
+                    .foregroundColor(Color(red: 24/255, green: 24/255, blue: 27/255))
                     .padding(.top, 60)
                 
                 Text(instructionSubtitle)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(Color(red: 113/255, green: 113/255, blue: 122/255))
                     .multilineTextAlignment(.center)
                     .padding(.top, 4)
                 
                 Spacer()
                 
                 Button(action: { presentationMode.wrappedValue.dismiss() }) {
-                    Text("Cancel")
-                        .font(.headline)
-                        .foregroundColor(.white)
+                    Text("CANCEL")
+                        .font(.system(size: 12, weight: .semibold))
+                        .tracking(2)
+                        .foregroundColor(Color(red: 113/255, green: 113/255, blue: 122/255))
                         .padding()
                 }
                 .padding(.bottom, 40)
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(.light)
     }
     
     private var instructionTitle: String {
