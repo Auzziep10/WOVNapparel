@@ -2,6 +2,12 @@ import SwiftUI
 import AuthenticationServices
 import FirebaseAuth
 
+struct Garment: Identifiable, Codable, Equatable {
+    let id: String
+    let type: String
+    let thumbnail: String
+}
+
 enum AppRoute: Equatable {
     case onboardingBasic
     case onboardingPhotos
@@ -34,6 +40,11 @@ class AppFlowState: ObservableObject {
     // Synthesis State
     @Published var isSynthesizing: Bool = false
     @Published var generatedImageURL: URL? = nil
+    
+    // Catalog & Cache State
+    @Published var recommendedGarments: [Garment] = []
+    @Published var selectedGarmentId: String? = nil
+    @Published var renderCache: [String: URL] = [:]
     
     func completeOnboarding() {
         hasProfile = true
@@ -107,11 +118,19 @@ class AppFlowState: ObservableObject {
     }
     
     // MARK: - Synthesis Trigger
-    func triggerSynthesis(occasion: String) {
+    func triggerSynthesis(occasion: String, garmentId: String? = nil) {
         guard let userId = FirebaseAuth.Auth.auth().currentUser?.uid else { return }
         
+        // Caching Logic: If we already synthesized this exact state, load it instantly.
+        let cacheKey = garmentId ?? "default_\(occasion)"
+        if let cachedURL = renderCache[cacheKey] {
+            self.generatedImageURL = cachedURL
+            self.selectedGarmentId = garmentId
+            return
+        }
+        
         isSynthesizing = true
-        generatedImageURL = nil
+        selectedGarmentId = garmentId
         
         Task { @MainActor in
             do {
@@ -120,7 +139,11 @@ class AppFlowState: ObservableObject {
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 
-                let payload = ["userId": userId, "occasion": occasion]
+                var payload: [String: Any] = ["userId": userId, "occasion": occasion]
+                if let gId = garmentId {
+                    payload["garmentId"] = gId
+                }
+                
                 request.httpBody = try JSONSerialization.data(withJSONObject: payload)
                 
                 let (data, response) = try await URLSession.shared.data(for: request)
@@ -135,9 +158,22 @@ class AppFlowState: ObservableObject {
                    let mockRenderUrlString = json["mockRenderUrl"] as? String,
                    let finalURL = URL(string: mockRenderUrlString) {
                     
-                    // Artificial delay to simulate heavy generation
-                    try await Task.sleep(nanoseconds: 2_000_000_000)
+                    // Decode catalog if present
+                    if let garmentsDict = json["garments"] as? [[String: String]] {
+                        let parsedGarments = garmentsDict.compactMap { dict -> Garment? in
+                            guard let id = dict["id"], let type = dict["type"], let thumb = dict["thumbnail"] else { return nil }
+                            return Garment(id: id, type: type, thumbnail: thumb)
+                        }
+                        if !parsedGarments.isEmpty {
+                            self.recommendedGarments = parsedGarments
+                        }
+                    }
+                    
+                    // Artificial delay to simulate heavy AI generation
+                    try await Task.sleep(nanoseconds: 1_000_000_000)
+                    
                     self.generatedImageURL = finalURL
+                    self.renderCache[cacheKey] = finalURL // Save to intelligent cache
                 }
                 
                 self.isSynthesizing = false

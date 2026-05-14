@@ -7,54 +7,129 @@ struct TryOnView: View {
     
     var body: some View {
         ZStack {
-            Color(red: 244/255, green: 244/255, blue: 245/255).ignoresSafeArea()
-            
+            // 1. Full-Bleed Background Layer
             if let finalURL = appState.generatedImageURL {
-                // Final Results
-                VStack(spacing: 24) {
-                    Text("Your Spatial Try-On")
-                        .font(.system(size: 32, weight: .regular, design: .serif))
-                        .foregroundColor(Color(red: 24/255, green: 24/255, blue: 27/255))
-                        .padding(.top, 40)
-                    
-                    Text(occasion)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(Color(red: 113/255, green: 113/255, blue: 122/255))
-                        .textCase(.uppercase)
-                        .tracking(2)
-                    
-                    AsyncImage(url: finalURL) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .cornerRadius(16)
-                                .shadow(color: .black.opacity(0.1), radius: 20, y: 10)
-                        case .failure:
-                            VStack {
-                                Image(systemName: "exclamationmark.triangle")
-                                    .font(.system(size: 40))
-                                    .foregroundColor(.red)
-                                Text("Failed to load image")
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        @unknown default:
-                            EmptyView()
-                        }
+                AsyncImage(url: finalURL) { phase in
+                    switch phase {
+                    case .empty:
+                        Color(red: 244/255, green: 244/255, blue: 245/255).ignoresSafeArea()
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .ignoresSafeArea()
+                            // Slight dimming if synthesizing a new garment so the user knows it's working
+                            .opacity(appState.isSynthesizing ? 0.6 : 1.0)
+                            .animation(.easeInOut, value: appState.isSynthesizing)
+                    case .failure:
+                        Color(red: 244/255, green: 244/255, blue: 245/255).ignoresSafeArea()
+                    @unknown default:
+                        EmptyView()
                     }
-                    .frame(maxHeight: 500)
-                    .padding(.horizontal, 24)
+                }
+            } else {
+                Color(red: 244/255, green: 244/255, blue: 245/255).ignoresSafeArea()
+            }
+            
+            // 2. Global Loading Spinner (Only for initial load)
+            if appState.generatedImageURL == nil && appState.isSynthesizing {
+                VStack(spacing: 32) {
+                    ZStack {
+                        Circle()
+                            .stroke(Color.gray.opacity(0.2), lineWidth: 4)
+                            .frame(width: 80, height: 80)
+                        
+                        Circle()
+                            .trim(from: 0, to: 0.7)
+                            .stroke(Color.black, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                            .frame(width: 80, height: 80)
+                            .rotationEffect(Angle(degrees: appState.isSynthesizing ? 360 : 0))
+                            .animation(.linear(duration: 1.5).repeatForever(autoreverses: false), value: appState.isSynthesizing)
+                    }
+                    Text("Synthesizing Style...")
+                        .font(.system(size: 18, weight: .regular, design: .serif))
+                }
+            }
+            
+            // 3. UI Overlay
+            if appState.generatedImageURL != nil {
+                VStack {
+                    // Top Logo
+                    HStack {
+                        Image("wovn-logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 100)
+                            .colorMultiply(.black) // Force black if needed, or leave native
+                        Spacer()
+                    }
+                    .padding(.leading, 24)
+                    .padding(.top, 20)
                     
                     Spacer()
                     
+                    // Left Rolodex Menu
+                    HStack {
+                        ScrollView(.vertical, showsIndicators: false) {
+                            VStack(spacing: 20) {
+                                ForEach(appState.recommendedGarments) { garment in
+                                    Button(action: {
+                                        // Only trigger if we aren't already synthesizing this exact garment
+                                        if appState.selectedGarmentId != garment.id && !appState.isSynthesizing {
+                                            let generator = UIImpactFeedbackGenerator(style: .medium)
+                                            generator.impactOccurred()
+                                            appState.triggerSynthesis(occasion: occasion, garmentId: garment.id)
+                                        }
+                                    }) {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.white)
+                                                .frame(width: 60, height: 60)
+                                                .shadow(color: .black.opacity(0.15), radius: 10, y: 5)
+                                            
+                                            AsyncImage(url: URL(string: garment.thumbnail)) { image in
+                                                image.resizable().scaledToFill()
+                                            } placeholder: {
+                                                Color.gray.opacity(0.2)
+                                            }
+                                            .frame(width: 50, height: 50)
+                                            .clipShape(Circle())
+                                            
+                                            // Show spinner ON the bubble if this specific one is loading
+                                            if appState.isSynthesizing && appState.selectedGarmentId == garment.id {
+                                                Circle()
+                                                    .fill(Color.white.opacity(0.7))
+                                                    .frame(width: 60, height: 60)
+                                                
+                                                ProgressView()
+                                                    .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                                            }
+                                            
+                                            // Selection Ring
+                                            if appState.selectedGarmentId == garment.id {
+                                                Circle()
+                                                    .stroke(Color.black, lineWidth: 2)
+                                                    .frame(width: 66, height: 66)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(.vertical, 40)
+                            .padding(.leading, 24)
+                        }
+                        .frame(width: 100)
+                        
+                        Spacer()
+                    }
+                    
+                    Spacer()
+                    
+                    // Bottom Done Button
                     Button(action: {
                         appState.currentRoute = .profileReview
                     }) {
-                        Text("BACK TO DASHBOARD")
+                        Text("SAVE & EXIT")
                             .font(.system(size: 12, weight: .bold))
                             .tracking(2)
                             .foregroundColor(.white)
@@ -65,31 +140,6 @@ struct TryOnView: View {
                     }
                     .padding(.horizontal, 24)
                     .padding(.bottom, 40)
-                }
-            } else {
-                // Synthesizing Loading State
-                VStack(spacing: 32) {
-                    ZStack {
-                        Circle()
-                            .stroke(Color.gray.opacity(0.2), lineWidth: 4)
-                            .frame(width: 100, height: 100)
-                        
-                        Circle()
-                            .trim(from: 0, to: 0.7)
-                            .stroke(Color.black, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                            .frame(width: 100, height: 100)
-                            .rotationEffect(Angle(degrees: appState.isSynthesizing ? 360 : 0))
-                            .animation(.linear(duration: 1.5).repeatForever(autoreverses: false), value: appState.isSynthesizing)
-                    }
-                    
-                    VStack(spacing: 8) {
-                        Text("Synthesizing Try-On")
-                            .font(.system(size: 24, weight: .regular, design: .serif))
-                        
-                        Text("Running AI garment mapping...")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gray)
-                    }
                 }
             }
         }
