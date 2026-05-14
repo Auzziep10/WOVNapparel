@@ -16,7 +16,19 @@ struct ImagePicker: UIViewControllerRepresentable {
         if sourceType == .camera {
             // Add a simple automatic timer overlay
             let overlay = UIView(frame: UIScreen.main.bounds)
-            overlay.isUserInteractionEnabled = false // Allow taps to pass through to native controls
+            
+            // Allow taps to pass through to native controls ONLY outside of our buttons
+            overlay.isUserInteractionEnabled = true
+            
+            // Pass-through view wrapper to only intercept touches on the button
+            class PassThroughView: UIView {
+                override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+                    let view = super.hitTest(point, with event: event)
+                    return view == self ? nil : view
+                }
+            }
+            
+            let passThroughOverlay = PassThroughView(frame: UIScreen.main.bounds)
             
             let label = UILabel(frame: CGRect(x: 0, y: 100, width: UIScreen.main.bounds.width, height: 100))
             label.textAlignment = .center
@@ -26,12 +38,25 @@ struct ImagePicker: UIViewControllerRepresentable {
             label.layer.shadowOffset = .zero
             label.layer.shadowOpacity = 0.5
             label.layer.shadowRadius = 5
+            label.text = "10"
             
-            overlay.addSubview(label)
-            imagePicker.cameraOverlayView = overlay
+            let startButton = UIButton(frame: CGRect(x: UIScreen.main.bounds.width / 2 - 75, y: UIScreen.main.bounds.height - 150, width: 150, height: 50))
+            startButton.backgroundColor = UIColor(white: 0, alpha: 0.7)
+            startButton.setTitle("START 10s TIMER", for: .normal)
+            startButton.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
+            startButton.layer.cornerRadius = 25
             
-            // Start countdown
-            context.coordinator.startTimer(label: label, picker: imagePicker)
+            passThroughOverlay.addSubview(label)
+            passThroughOverlay.addSubview(startButton)
+            
+            imagePicker.cameraOverlayView = passThroughOverlay
+            
+            // Bind action
+            let action = UIAction { _ in
+                startButton.isHidden = true
+                context.coordinator.startTimer(label: label, picker: imagePicker)
+            }
+            startButton.addAction(action, for: .touchUpInside)
         }
         
         return imagePicker
