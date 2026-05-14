@@ -29,10 +29,10 @@ struct ProfileDashboardView: View {
                         // AVATAR ROW (Face & Profile)
                         HStack(spacing: 40) {
                             if let face = appState.faceImage {
-                                AvatarThumbnail(image: face, label: "FACE", rotate180: true)
+                                AvatarThumbnail(image: face, label: "FACE")
                             }
                             if let profile = appState.profileImage {
-                                AvatarThumbnail(image: profile, label: "PROFILE", rotate180: true)
+                                AvatarThumbnail(image: profile, label: "PROFILE")
                             }
                         }
                         
@@ -74,17 +74,15 @@ struct ProfileDashboardView: View {
 struct AvatarThumbnail: View {
     let image: UIImage
     let label: String
-    let rotate180: Bool
     
     var body: some View {
         VStack(spacing: 12) {
             Image(uiImage: image)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 100, height: 100)
-                .rotationEffect(rotate180 ? .degrees(180) : .zero)
-                .clipShape(Circle())
-                .overlay(Circle().stroke(Color(red: 228/255, green: 228/255, blue: 231/255), lineWidth: 1))
+                .frame(width: 120, height: 160) // 3:4 aspect ratio portrait
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(red: 228/255, green: 228/255, blue: 231/255), lineWidth: 1))
                 .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
             
             Text(label)
@@ -105,8 +103,8 @@ struct HeroPhotoThumbnail: View {
                 .resizable()
                 .scaledToFill()
                 .frame(maxWidth: UIScreen.main.bounds.width - 48, maxHeight: 450)
-                .clipShape(RoundedRectangle(cornerRadius: 0)) // Sharp corners for editorial look
-                .overlay(RoundedRectangle(cornerRadius: 0).stroke(Color(red: 228/255, green: 228/255, blue: 231/255), lineWidth: 1))
+                .clipShape(RoundedRectangle(cornerRadius: 16)) // Softened the hero image corners to match
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(red: 228/255, green: 228/255, blue: 231/255), lineWidth: 1))
                 .shadow(color: .black.opacity(0.08), radius: 20, y: 10)
             
             Text(label)

@@ -237,12 +237,11 @@ struct ARFaceTrackingViewContainer: UIViewRepresentable {
                     let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
                     let context = CIContext()
                     
-                    // Must apply transform to orient correctly (CVPixelBuffer is typically landscape right from camera)
-                    let transform = frame.displayTransform(for: .portrait, viewportSize: UIScreen.main.bounds.size)
-                    let transformedCI = ciImage.transformed(by: CGAffineTransform(scaleX: 1, y: -1).translatedBy(x: 0, y: -ciImage.extent.height)).transformed(by: transform)
-
-                    if let cgImage = context.createCGImage(transformedCI, from: transformedCI.extent) {
-                        let uiImage = UIImage(cgImage: cgImage, scale: 1.0, orientation: .up)
+                    // Do not apply viewport displayTransform as it squashes the 16:9 camera feed into the screen aspect ratio.
+                    // Instead, create the CGImage directly from the raw pixel buffer and rely on UIImage orientation.
+                    if let cgImage = context.createCGImage(ciImage, from: ciImage.extent) {
+                        // ARKit front camera feeds are landscape. We use .leftMirrored to rotate to portrait and mirror for selfie view.
+                        let uiImage = UIImage(cgImage: cgImage, scale: 1.0, orientation: .leftMirrored)
                         callback(uiImage)
                         
                         // Small delay before allowing next capture to prevent double fires
