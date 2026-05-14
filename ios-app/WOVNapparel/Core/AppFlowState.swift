@@ -1,4 +1,6 @@
 import SwiftUI
+import AuthenticationServices
+import FirebaseAuth
 
 enum AppRoute: Equatable {
     case onboardingBasic
@@ -11,6 +13,7 @@ enum AppRoute: Equatable {
 }
 
 class AppFlowState: ObservableObject {
+    @Published var isAuthenticated: Bool = false
     @Published var currentRoute: AppRoute = .onboardingBasic
     
     // We will sync this with Firestore shortly
@@ -33,15 +36,39 @@ class AppFlowState: ObservableObject {
         currentRoute = .profileReview
     }
     
+    // MARK: - OAuth Handlers
+    func handleAppleSignInRequest(_ request: ASAuthorizationAppleIDRequest) {
+        // Implement Apple nonce & scope request
+        request.requestedScopes = [.fullName, .email]
+    }
+    
+    func handleAppleSignInCompletion(_ result: Result<ASAuthorization, Error>) {
+        // Implement Apple credential parsing and Firebase auth
+        switch result {
+        case .success(let authorization):
+            print("Apple Sign-In Success: \(authorization)")
+            isAuthenticated = true
+        case .failure(let error):
+            print("Apple Sign-In Failed: \(error.localizedDescription)")
+        }
+    }
+    
+    func signInWithGoogle() {
+        // Implement Google SDK sign in
+        print("Google Sign In clicked")
+    }
+    
     func uploadIdentityData(selectedOccasion: String) {
         guard let face = faceImage, let profile = profileImage, let body = bodyImage else { return }
         
         isUploadingToCloud = true
-        uploadProgressText = "Authenticating Secure Session..."
+        uploadProgressText = "Verifying Secure Session..."
         
         Task { @MainActor in
             do {
-                let userId = try await FirebaseManager.shared.authenticateAnonymously()
+                guard let userId = FirebaseAuth.Auth.auth().currentUser?.uid else {
+                    throw NSError(domain: "Auth", code: -1, userInfo: [NSLocalizedDescriptionKey: "User not authenticated. Please log in."])
+                }
                 
                 self.uploadProgressText = "Encrypting & Syncing Photos..."
                 

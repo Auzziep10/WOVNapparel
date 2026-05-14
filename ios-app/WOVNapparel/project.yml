@@ -24,8 +24,18 @@ targets:
         product: FirebaseFirestore
       - package: Firebase
         product: FirebaseStorage
+      - package: GoogleSignIn
+        product: GoogleSignIn
+    entitlements:
+      path: WOVNapparel.entitlements
+      properties:
+        com.apple.developer.applesignin:
+          - Default
 
 packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk.git
     from: 10.20.0
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS.git
+    from: 7.1.0

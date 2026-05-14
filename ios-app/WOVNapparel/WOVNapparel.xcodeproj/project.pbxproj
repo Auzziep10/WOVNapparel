@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0FAF70CD1EBB1787B6A630EA /* IdentityCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6C3CC5FF064F5430661DA82 /* IdentityCaptureView.swift */; };
+		14353007576894F8DA6A18B4 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 1DF207C8201C8F25933DA950 /* GoogleSignIn */; };
 		144EAC41BEB013E4EDA0C453 /* SpectrophotometricSkinAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4CDCB8EDA1AC7E101250AC8 /* SpectrophotometricSkinAnalyzer.swift */; };
 		14E02E90AB68B267F1B997CC /* GuidedFaceCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A073E8E0508DF442274A6AFB /* GuidedFaceCaptureView.swift */; };
 		1F2F6B2CEE013151D8B7CFE2 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA3B4D64B80E17CE6629E84B /* CameraManager.swift */; };
@@ -17,6 +18,7 @@
 		4314B21600E4E6B2C16B9F37 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6254B8500BD45340491BFEA /* ImagePicker.swift */; };
 		48BC8B9D4893751AD0286591 /* FirebaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46F548F2753F9AA38F148C30 /* FirebaseManager.swift */; };
 		4AC5CC6CE66DA5C483F3AC08 /* WOVNapparelApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95974DC5BA0476C873E8AC8 /* WOVNapparelApp.swift */; };
+		514654E067B1A9FB24AF617F /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E567356E5494035F3C1EA858 /* AuthenticationView.swift */; };
 		74274AA3CF953E22067CAFA2 /* BodyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E238E9D541BDD3E39CADE29 /* BodyScannerView.swift */; };
 		74518C85D8180B67C845037A /* LiDARSizingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF445875DF6CCC6D9C8D09E7 /* LiDARSizingEngine.swift */; };
 		7461B72C3C85504595FFF33F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 727D1DF55695337E97912467 /* Assets.xcassets */; };
@@ -53,6 +55,7 @@
 		B95974DC5BA0476C873E8AC8 /* WOVNapparelApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WOVNapparelApp.swift; sourceTree = "<group>"; };
 		BF445875DF6CCC6D9C8D09E7 /* LiDARSizingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiDARSizingEngine.swift; sourceTree = "<group>"; };
 		CA3B4D64B80E17CE6629E84B /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
+		E567356E5494035F3C1EA858 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
 		E6C3CC5FF064F5430661DA82 /* IdentityCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityCaptureView.swift; sourceTree = "<group>"; };
 		E9B6719E23161D9E96F363F4 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
 		F4CDCB8EDA1AC7E101250AC8 /* SpectrophotometricSkinAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrophotometricSkinAnalyzer.swift; sourceTree = "<group>"; };
@@ -66,6 +69,7 @@
 				81E93B45CA073916A4B00C88 /* FirebaseAuth in Frameworks */,
 				C262AC778143BCFE647C1750 /* FirebaseFirestore in Frameworks */,
 				CD0B678F8E262FC3844D54B0 /* FirebaseStorage in Frameworks */,
+				14353007576894F8DA6A18B4 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,6 +104,14 @@
 			path = Spectrophotometry;
 			sourceTree = "<group>";
 		};
+		91FE3E41831783ADEDA99BA5 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				E567356E5494035F3C1EA858 /* AuthenticationView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
 		A71F43D6CAC5E5C0F7D53555 /* Camera */ = {
 			isa = PBXGroup;
 			children = (
@@ -114,6 +126,7 @@
 		AEEC4390D57615A772AC0E52 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				91FE3E41831783ADEDA99BA5 /* Auth */,
 				A71F43D6CAC5E5C0F7D53555 /* Camera */,
 				0D23E1C2D22FDE38E402335D /* Occasion */,
 				BAFF0EF0FEBE10AD5AF8923C /* Profile */,
@@ -192,6 +205,7 @@
 				DBCCEBC8C27F237F8BBD0CC3 /* FirebaseAuth */,
 				29F1EDEB97A8C99BD090100F /* FirebaseFirestore */,
 				352414B7A0293A7D9F5780DD /* FirebaseStorage */,
+				1DF207C8201C8F25933DA950 /* GoogleSignIn */,
 			);
 			productName = WOVNapparel;
 			productReference = 4F75C4DC3F7091F292F8B52A /* WOVNapparel.app */;
@@ -219,6 +233,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				CFD429FB1E4E716DB1F53618 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				F1F9E59AE0A5F32DBF344D8E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C82E467D7626B75EF361ADD1 /* Products */;
@@ -249,6 +264,7 @@
 			files = (
 				24105CC3F575672FFF9D889F /* ARScannerView.swift in Sources */,
 				EA88532B9E5AC00551B6AD3E /* AppFlowState.swift in Sources */,
+				514654E067B1A9FB24AF617F /* AuthenticationView.swift in Sources */,
 				74274AA3CF953E22067CAFA2 /* BodyScannerView.swift in Sources */,
 				1F2F6B2CEE013151D8B7CFE2 /* CameraManager.swift in Sources */,
 				7F02DFCB7BF72E70F1C8459C /* CameraPreview.swift in Sources */,
@@ -395,6 +411,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = WOVNapparel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "\"WOVN requires camera access to perform 3D spatial sizing and skin tone analysis.\"";
@@ -414,6 +431,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = WOVNapparel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "\"WOVN requires camera access to perform 3D spatial sizing and skin tone analysis.\"";
@@ -461,9 +479,22 @@
 				minimumVersion = 10.20.0;
 			};
 		};
+		F1F9E59AE0A5F32DBF344D8E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.1.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		1DF207C8201C8F25933DA950 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F1F9E59AE0A5F32DBF344D8E /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
 		29F1EDEB97A8C99BD090100F /* FirebaseFirestore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CFD429FB1E4E716DB1F53618 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

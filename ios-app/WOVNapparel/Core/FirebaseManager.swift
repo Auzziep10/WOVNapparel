@@ -13,9 +13,15 @@ class FirebaseManager {
     
     private init() {}
     
-    /// Authenticates the user anonymously. Returns the unique user ID.
-    func authenticateAnonymously() async throws -> String {
-        let authResult = try await Auth.auth().signInAnonymously()
+    /// Signs up a new user with email and password
+    func signUp(email: String, password: String) async throws -> String {
+        let authResult = try await Auth.auth().createUser(withEmail: email, password: password)
+        return authResult.user.uid
+    }
+    
+    /// Signs in an existing user with email and password
+    func signIn(email: String, password: String) async throws -> String {
+        let authResult = try await Auth.auth().signIn(withEmail: email, password: password)
         return authResult.user.uid
     }
     
