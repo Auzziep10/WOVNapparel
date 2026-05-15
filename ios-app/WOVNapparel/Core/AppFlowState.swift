@@ -87,7 +87,7 @@ class AppFlowState: ObservableObject {
     }
     
     func uploadIdentityData(selectedOccasion: String) {
-        guard let _ = faceImage, let _ = profileImage, let _ = bodyImage else { 
+        guard let face = faceImage, let profile = profileImage, let body = bodyImage else { 
             print("Notice: Missing photos. Skipping cloud upload and jumping to Try-On for demo purposes.")
             self.currentRoute = .tryOn(techPackId: selectedOccasion)
             return 
@@ -101,14 +101,18 @@ class AppFlowState: ObservableObject {
                 let userId = FirebaseAuth.Auth.auth().currentUser?.uid ?? mockSessionId
                 
                 self.uploadProgressText = "Encrypting & Syncing Photos..."
-                try await Task.sleep(nanoseconds: 800_000_000)
                 
-                // For development, we bypass actual Firebase Storage uploads because missing security rules 
-                // or network timeouts will cause the fetcher to hang infinitely.
+                // Upload images concurrently to Firebase Storage
+                async let faceURL = FirebaseManager.shared.uploadImage(face, path: "users/\(userId)/identity/face.jpg")
+                async let profileURL = FirebaseManager.shared.uploadImage(profile, path: "users/\(userId)/identity/profile.jpg")
+                async let bodyURL = FirebaseManager.shared.uploadImage(body, path: "users/\(userId)/identity/body.jpg")
+                
+                let (fURL, pURL, bURL) = try await (faceURL, profileURL, bodyURL)
+                
                 let urls = [
-                    "face": "https://mock-storage.com/face.jpg",
-                    "profile": "https://mock-storage.com/profile.jpg",
-                    "body": "https://mock-storage.com/body.jpg"
+                    "face": fURL.absoluteString,
+                    "profile": pURL.absoluteString,
+                    "body": bURL.absoluteString
                 ]
                 
                 self.uploadProgressText = "Locking In Spatial Metrics..."
@@ -116,7 +120,7 @@ class AppFlowState: ObservableObject {
                 try await FirebaseManager.shared.saveMetrics(self.userMetrics, userId: userId, photoURLs: urls)
                 
                 self.uploadProgressText = "Identity Synced Successfully."
-                try await Task.sleep(nanoseconds: 800_000_000)
+                try await Task.sleep(nanoseconds: 1_000_000_000)
                 
                 self.isUploadingToCloud = false
                 self.currentRoute = .tryOn(techPackId: selectedOccasion)
@@ -158,8 +162,8 @@ class AppFlowState: ObservableObject {
         
         Task { @MainActor in
             do {
-                // Use local network IP so physical device can reach Mac
-                guard let url = URL(string: "http://192.168.1.92:3000/api/render-fit") else { return }
+                // Point to production Vercel deployment for TestFlight beta testing
+                guard let url = URL(string: "https://wovn-apparel.vercel.app/api/render-fit") else { return }
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")

@@ -36,6 +36,7 @@
 		D28260BB449B9FBEA67D07F3 /* TryOnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11139B38687CDEBB85F87327 /* TryOnView.swift */; };
 		E8DB61562FB7AE1E00412BCC /* VisionCaptureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DB61542FB7AE1E00412BCC /* VisionCaptureController.swift */; };
 		E8DB61572FB7AE1E00412BCC /* VisionCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DB61552FB7AE1E00412BCC /* VisionCaptureView.swift */; };
+		E8DB61592FB7C3DA00412BCC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E8DB61582FB7C3DA00412BCC /* Assets.xcassets */; };
 		EA88532B9E5AC00551B6AD3E /* AppFlowState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B26CE6D5049EDB66C973417 /* AppFlowState.swift */; };
 /* End PBXBuildFile section */
 
@@ -66,6 +67,7 @@
 		E8DB61532FB7A73900412BCC /* WOVNapparel-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "WOVNapparel-Info.plist"; sourceTree = "<group>"; };
 		E8DB61542FB7AE1E00412BCC /* VisionCaptureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionCaptureController.swift; sourceTree = "<group>"; };
 		E8DB61552FB7AE1E00412BCC /* VisionCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionCaptureView.swift; sourceTree = "<group>"; };
+		E8DB61582FB7C3DA00412BCC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E9B6719E23161D9E96F363F4 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
 		F4CDCB8EDA1AC7E101250AC8 /* SpectrophotometricSkinAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrophotometricSkinAnalyzer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -145,6 +147,7 @@
 		AEEC4390D57615A772AC0E52 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				E8DB61582FB7C3DA00412BCC /* Assets.xcassets */,
 				91FE3E41831783ADEDA99BA5 /* Auth */,
 				A71F43D6CAC5E5C0F7D53555 /* Camera */,
 				0D23E1C2D22FDE38E402335D /* Occasion */,
@@ -271,6 +274,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7461B72C3C85504595FFF33F /* Assets.xcassets in Resources */,
+				E8DB61592FB7C3DA00412BCC /* Assets.xcassets in Resources */,
 				335704A060ECD42864B851E5 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
