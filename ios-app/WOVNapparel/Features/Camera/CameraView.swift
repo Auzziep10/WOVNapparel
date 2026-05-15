@@ -16,7 +16,7 @@ struct CameraView: View {
     @State private var isBodyFullyVisible: Bool = false
     @State private var shouldCapture: Bool = false
     @State private var shouldFlipCamera: Bool = false
-    @State private var countdown: Int = 3
+    @State private var countdown: Int = 2
     @State private var timer: Timer? = nil
     
     private let sizingEngine = SpatialSizingEngine()
@@ -90,7 +90,7 @@ struct CameraView: View {
                 .allowsHitTesting(false)
                 
                 // Countdown Overlay
-                if isBodyFullyVisible && countdown <= 3 && timer != nil {
+                if isBodyFullyVisible && countdown <= 2 && timer != nil {
                     Text("\(countdown)")
                         .font(.system(size: 140, weight: .bold))
                         .foregroundColor(.green)
@@ -154,7 +154,7 @@ struct CameraView: View {
     }
     
     private func startCountdown() {
-        countdown = 3
+        countdown = 2
         timer?.invalidate()
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
@@ -176,7 +176,7 @@ struct CameraView: View {
     private func cancelCountdown() {
         timer?.invalidate()
         timer = nil
-        countdown = 3
+        countdown = 2
     }
     
     private func processPseudo3DScan() {
