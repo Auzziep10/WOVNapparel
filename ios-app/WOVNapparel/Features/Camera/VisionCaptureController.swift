@@ -215,23 +215,50 @@ extension VisionCaptureController: AVCaptureVideoDataOutputSampleBufferDelegate 
             let maxY = allNormalizedPoints.map { $0.y }.max()!
             
             let padding: CGFloat = 0.05
-            let normalizedRect = CGRect(
-                x: max(0, minX - padding),
-                y: max(0, (1.0 - maxY) - padding), // Flip Y for Vision -> UIKit
-                width: min(1.0, (maxX - minX) + (padding * 2)),
-                height: min(1.0, (maxY - minY) + (padding * 2))
-            )
             
-            // Helper to convert a normalized Vision point to screen coordinates
+            // Vision points are 0..1 where (0,0) is bottom-left of the buffer.
+            // Since we forced connection.videoOrientation = .portrait, the buffer is portrait.
+            // The aspect ratio of the .photo preset is 3:4 (portrait).
+            let cameraAspect: CGFloat = 3.0 / 4.0
+            
+            // Calculate screen dimensions to perform a perfect .resizeAspectFill mapping
+            let screenBounds = UIScreen.main.bounds
+            let screenAspect = screenBounds.width / screenBounds.height
+            
+            var scaleX: CGFloat = 1.0
+            var scaleY: CGFloat = 1.0
+            var offsetX: CGFloat = 0.0
+            var offsetY: CGFloat = 0.0
+            
+            if screenAspect < cameraAspect {
+                // Screen is narrower than the camera feed. Left and right are cropped.
+                scaleY = screenBounds.height
+                scaleX = screenBounds.height * cameraAspect
+                offsetX = -(scaleX - screenBounds.width) / 2.0
+            } else {
+                // Screen is wider than the camera feed. Top and bottom are cropped.
+                scaleX = screenBounds.width
+                scaleY = screenBounds.width / cameraAspect
+                offsetY = -(scaleY - screenBounds.height) / 2.0
+            }
+            
+            // Helper to convert a normalized Vision point to exact SwiftUI screen coordinates
             func convertPoint(_ point: CGPoint) -> CGPoint {
-                let normalized = CGPoint(x: point.x, y: 1.0 - point.y)
-                return previewLayer.layerPointConverted(fromCaptureDevicePoint: normalized)
+                var x = point.x
+                var y = 1.0 - point.y // Flip Y
+                
+                // If it's the front camera, the video connection is mirrored.
+                // Vision detects the skeleton on the mirrored frame.
+                // To display it correctly over the mirrored preview, we must mirror X.
+                if self.isFrontCamera {
+                    x = 1.0 - x
+                }
+                
+                return CGPoint(x: x * scaleX + offsetX, y: y * scaleY + offsetY)
             }
             
             DispatchQueue.main.sync {
-                boundingBox = previewLayer.layerRectConverted(fromMetadataOutputRect: normalizedRect)
-                
-                // Map all joints
+                // Map all joints to screen coordinates
                 screenJoints = jointDict.values.map { convertPoint($0) }
                 
                 // Define connections to draw the skeleton
@@ -249,11 +276,26 @@ extension VisionCaptureController: AVCaptureVideoDataOutputSampleBufferDelegate 
                         screenLines.append((convertPoint(start), convertPoint(end)))
                     }
                 }
+                
+                // Calculate UI bounding box from screen joints
+                if !screenJoints.isEmpty {
+                    let sMinX = screenJoints.map { $0.x }.min()!
+                    let sMaxX = screenJoints.map { $0.x }.max()!
+                    let sMinY = screenJoints.map { $0.y }.min()!
+                    let sMaxY = screenJoints.map { $0.y }.max()!
+                    let sPadding: CGFloat = 20.0
+                    
+                    boundingBox = CGRect(
+                        x: sMinX - sPadding,
+                        y: sMinY - sPadding,
+                        width: (sMaxX - sMinX) + (sPadding * 2),
+                        height: (sMaxY - sMinY) + (sPadding * 2)
+                    )
+                }
             }
         }
         
         // Ensure the person is taking up a good amount of the screen.
-        // Relaxed height ratio for easier testing.
         let bodyHeightRatio = boundingBox.height / UIScreen.main.bounds.height
         if bodyHeightRatio < 0.4 || bodyHeightRatio > 0.95 {
             isFullyVisible = false
