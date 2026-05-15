@@ -9,6 +9,13 @@ struct CameraView: View {
     @State private var scanLineOffset: CGFloat = -200
     @State private var processText = "Analyzing Spatial Proportions..."
     
+    // Vision AR Tracking State
+    @State private var boundingBox: CGRect = .zero
+    @State private var isBodyFullyVisible: Bool = false
+    @State private var shouldCapture: Bool = false
+    @State private var countdown: Int = 3
+    @State private var timer: Timer? = nil
+    
     private let sizingEngine = SpatialSizingEngine()
     
     var body: some View {
@@ -50,32 +57,36 @@ struct CameraView: View {
                     Spacer()
                 }
             } else {
-                // Live Camera View
-                ImagePicker(selectedImage: $technicalImage, sourceType: .camera)
+                // Live AR Camera View
+                VisionCaptureView(isBodyFullyVisible: $isBodyFullyVisible, boundingBox: $boundingBox, capturedImage: $technicalImage, shouldCapture: $shouldCapture)
                     .ignoresSafeArea()
                 
-                // Silhouette Overlay
-                VStack {
-                    Spacer()
-                    Image(systemName: "figure.stand")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(height: UIScreen.main.bounds.height * 0.6)
-                        .foregroundColor(Color.green.opacity(0.4))
-                        .shadow(color: .green, radius: 10)
-                    Spacer()
+                // Dynamic AR Box Overlay
+                if boundingBox != .zero {
+                    Rectangle()
+                        .stroke(isBodyFullyVisible ? Color.green : Color.red, lineWidth: 6)
+                        .frame(width: boundingBox.width, height: boundingBox.height)
+                        .position(x: boundingBox.midX, y: boundingBox.midY)
+                        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: boundingBox)
                 }
-                .allowsHitTesting(false) // Let touches pass through to the camera
+                
+                // Countdown Overlay
+                if isBodyFullyVisible && countdown <= 3 && timer != nil {
+                    Text("\(countdown)")
+                        .font(.system(size: 140, weight: .bold))
+                        .foregroundColor(.green)
+                        .shadow(color: .black, radius: 10)
+                }
                 
                 // Header Instructions
                 VStack {
                     VStack(spacing: 4) {
-                        Text("TECHNICAL MEASUREMENT")
+                        Text(isBodyFullyVisible ? "PERFECT POSITION" : "TECHNICAL MEASUREMENT")
                             .font(.system(size: 14, weight: .bold))
                             .tracking(2)
-                            .foregroundColor(.white)
+                            .foregroundColor(isBodyFullyVisible ? .green : .white)
                         
-                        Text("Stand perfectly inside the green silhouette.")
+                        Text(isBodyFullyVisible ? "Hold still for \(countdown)..." : "Step back to fit your entire body in frame.")
                             .font(.system(size: 14))
                             .foregroundColor(.white)
                     }
@@ -94,6 +105,42 @@ struct CameraView: View {
                 processPseudo3DScan()
             }
         }
+        .onChange(of: isBodyFullyVisible) { visible in
+            if visible {
+                startCountdown()
+            } else {
+                cancelCountdown()
+            }
+        }
+        .onDisappear {
+            cancelCountdown()
+        }
+    }
+    
+    private func startCountdown() {
+        countdown = 3
+        timer?.invalidate()
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
+            if countdown > 1 {
+                countdown -= 1
+                let tickGenerator = UIImpactFeedbackGenerator(style: .light)
+                tickGenerator.impactOccurred()
+            } else {
+                t.invalidate()
+                let snapGenerator = UIImpactFeedbackGenerator(style: .heavy)
+                snapGenerator.impactOccurred()
+                shouldCapture = true
+            }
+        }
+    }
+    
+    private func cancelCountdown() {
+        timer?.invalidate()
+        timer = nil
+        countdown = 3
     }
     
     private func processPseudo3DScan() {
