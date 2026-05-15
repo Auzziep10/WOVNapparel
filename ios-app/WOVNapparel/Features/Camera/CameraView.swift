@@ -64,27 +64,54 @@ struct CameraView: View {
                 VisionCaptureView(isBodyFullyVisible: $isBodyFullyVisible, boundingBox: $boundingBox, joints: $joints, lines: $lines, capturedImage: $technicalImage, shouldCapture: $shouldCapture, shouldFlipCamera: $shouldFlipCamera)
                     .ignoresSafeArea()
                 
-                // Dynamic AR Skeleton Overlay
+                // Premium Digital Mesh Overlay
                 ZStack {
-                    // Bones
+                    // 1. Active Scanning Laser Area
+                    if boundingBox != .zero {
+                        Rectangle()
+                            .fill((isBodyFullyVisible ? Color.green : Color.yellow).opacity(0.1))
+                            .frame(width: boundingBox.width, height: boundingBox.height)
+                            .border((isBodyFullyVisible ? Color.green : Color.yellow).opacity(0.3), width: 1)
+                            .position(x: boundingBox.midX, y: boundingBox.midY)
+                            .animation(.easeInOut, value: boundingBox)
+                    }
+                    
+                    // 2. High-Tech Wireframe Mesh
                     ForEach(lines) { line in
+                        // Glowing Aura
                         Path { path in
                             path.move(to: line.start)
                             path.addLine(to: line.end)
                         }
-                        .stroke(isBodyFullyVisible ? Color.green : Color.yellow, style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
-                        .shadow(color: isBodyFullyVisible ? Color.green : Color.yellow, radius: 8)
+                        .stroke(isBodyFullyVisible ? Color.green.opacity(0.6) : Color.yellow.opacity(0.6), lineWidth: 6)
+                        .blur(radius: 4)
+                        .animation(.interactiveSpring(), value: line)
+                        
+                        // Core Mesh Line
+                        Path { path in
+                            path.move(to: line.start)
+                            path.addLine(to: line.end)
+                        }
+                        .stroke(Color.white.opacity(0.9), style: StrokeStyle(lineWidth: 1.5, lineCap: .round))
                         .animation(.interactiveSpring(), value: line)
                     }
                     
-                    // Joint Nodes
+                    // 3. Digital Tracker Nodes
                     ForEach(0..<joints.count, id: \.self) { i in
-                        Circle()
-                            .fill(Color.white)
-                            .frame(width: 14, height: 14)
-                            .position(joints[i])
-                            .shadow(color: .black, radius: 2)
-                            .animation(.interactiveSpring(), value: joints[i])
+                        ZStack {
+                            // Outer Node Glow
+                            Circle()
+                                .fill(isBodyFullyVisible ? Color.green.opacity(0.5) : Color.yellow.opacity(0.5))
+                                .frame(width: 16, height: 16)
+                                .blur(radius: 2)
+                            
+                            // Core Digital Dot
+                            Circle()
+                                .fill(Color.white)
+                                .frame(width: 4, height: 4)
+                        }
+                        .position(joints[i])
+                        .animation(.interactiveSpring(response: 0.3, dampingFraction: 0.6), value: joints[i])
                     }
                 }
                 .allowsHitTesting(false)
