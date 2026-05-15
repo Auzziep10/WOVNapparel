@@ -174,9 +174,9 @@ extension VisionCaptureController: AVCaptureVideoDataOutputSampleBufferDelegate 
     
     private func analyzePose(_ pose: VNHumanBodyPoseObservation) {
         // We require specific joints to ensure the full body is in frame.
-        // Relaxed from ankles to knees to make it slightly easier to trigger.
+        // Reverted back to strict ankle requirement for accurate full-body metrics.
         let requiredJointNames: [VNHumanBodyPoseObservation.JointName] = [
-            .nose, .leftWrist, .rightWrist, .leftKnee, .rightKnee
+            .nose, .leftWrist, .rightWrist, .leftAnkle, .rightAnkle
         ]
         
         var isFullyVisible = true
