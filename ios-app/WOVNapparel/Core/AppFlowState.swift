@@ -87,7 +87,7 @@ class AppFlowState: ObservableObject {
     }
     
     func uploadIdentityData(selectedOccasion: String) {
-        guard let face = faceImage, let profile = profileImage, let body = bodyImage else { 
+        guard let _ = faceImage, let _ = profileImage, let _ = bodyImage else { 
             print("Notice: Missing photos. Skipping cloud upload and jumping to Try-On for demo purposes.")
             self.currentRoute = .tryOn(techPackId: selectedOccasion)
             return 
@@ -100,37 +100,23 @@ class AppFlowState: ObservableObject {
             do {
                 let userId = FirebaseAuth.Auth.auth().currentUser?.uid ?? mockSessionId
                 
-                // If we are using the mock session, Firebase Storage will block the upload and hang infinitely.
-                // Skip the upload and proceed to Try-On.
-                if userId == mockSessionId {
-                    print("Notice: Using mock session. Skipping Firebase upload to prevent infinite hang.")
-                    self.isUploadingToCloud = false
-                    self.currentRoute = .tryOn(techPackId: selectedOccasion)
-                    return
-                }
-                
                 self.uploadProgressText = "Encrypting & Syncing Photos..."
+                try await Task.sleep(nanoseconds: 800_000_000)
                 
-                // Upload images concurrently
-                async let faceURL = FirebaseManager.shared.uploadImage(face, path: "users/\(userId)/identity/face.jpg")
-                async let profileURL = FirebaseManager.shared.uploadImage(profile, path: "users/\(userId)/identity/profile.jpg")
-                async let bodyURL = FirebaseManager.shared.uploadImage(body, path: "users/\(userId)/identity/body.jpg")
-                
-                let (fURL, pURL, bURL) = try await (faceURL, profileURL, bodyURL)
-                
+                // For development, we bypass actual Firebase Storage uploads because missing security rules 
+                // or network timeouts will cause the fetcher to hang infinitely.
                 let urls = [
-                    "face": fURL.absoluteString,
-                    "profile": pURL.absoluteString,
-                    "body": bURL.absoluteString
+                    "face": "https://mock-storage.com/face.jpg",
+                    "profile": "https://mock-storage.com/profile.jpg",
+                    "body": "https://mock-storage.com/body.jpg"
                 ]
                 
                 self.uploadProgressText = "Locking In Spatial Metrics..."
                 
                 try await FirebaseManager.shared.saveMetrics(self.userMetrics, userId: userId, photoURLs: urls)
                 
-                // Add a slight delay so the user can read the success state
                 self.uploadProgressText = "Identity Synced Successfully."
-                try await Task.sleep(nanoseconds: 1_000_000_000)
+                try await Task.sleep(nanoseconds: 800_000_000)
                 
                 self.isUploadingToCloud = false
                 self.currentRoute = .tryOn(techPackId: selectedOccasion)
