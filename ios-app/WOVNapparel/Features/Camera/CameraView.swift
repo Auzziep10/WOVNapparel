@@ -11,6 +11,8 @@ struct CameraView: View {
     
     // Vision AR Tracking State
     @State private var boundingBox: CGRect = .zero
+    @State private var joints: [CGPoint] = []
+    @State private var lines: [SkeletalLine] = []
     @State private var isBodyFullyVisible: Bool = false
     @State private var shouldCapture: Bool = false
     @State private var shouldFlipCamera: Bool = false
@@ -59,17 +61,33 @@ struct CameraView: View {
                 }
             } else {
                 // Live AR Camera View
-                VisionCaptureView(isBodyFullyVisible: $isBodyFullyVisible, boundingBox: $boundingBox, capturedImage: $technicalImage, shouldCapture: $shouldCapture, shouldFlipCamera: $shouldFlipCamera)
+                VisionCaptureView(isBodyFullyVisible: $isBodyFullyVisible, boundingBox: $boundingBox, joints: $joints, lines: $lines, capturedImage: $technicalImage, shouldCapture: $shouldCapture, shouldFlipCamera: $shouldFlipCamera)
                     .ignoresSafeArea()
                 
-                // Dynamic AR Box Overlay
-                if boundingBox != .zero {
-                    Rectangle()
-                        .stroke(isBodyFullyVisible ? Color.green : Color.red, lineWidth: 6)
-                        .frame(width: boundingBox.width, height: boundingBox.height)
-                        .position(x: boundingBox.midX, y: boundingBox.midY)
-                        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: boundingBox)
+                // Dynamic AR Skeleton Overlay
+                ZStack {
+                    // Bones
+                    ForEach(lines) { line in
+                        Path { path in
+                            path.move(to: line.start)
+                            path.addLine(to: line.end)
+                        }
+                        .stroke(isBodyFullyVisible ? Color.green : Color.yellow, style: StrokeStyle(lineWidth: 6, lineCap: .round, lineJoin: .round))
+                        .shadow(color: isBodyFullyVisible ? Color.green : Color.yellow, radius: 8)
+                        .animation(.interactiveSpring(), value: line)
+                    }
+                    
+                    // Joint Nodes
+                    ForEach(0..<joints.count, id: \.self) { i in
+                        Circle()
+                            .fill(Color.white)
+                            .frame(width: 14, height: 14)
+                            .position(joints[i])
+                            .shadow(color: .black, radius: 2)
+                            .animation(.interactiveSpring(), value: joints[i])
+                    }
                 }
+                .allowsHitTesting(false)
                 
                 // Countdown Overlay
                 if isBodyFullyVisible && countdown <= 3 && timer != nil {

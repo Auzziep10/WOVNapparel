@@ -7,7 +7,9 @@ protocol VisionCaptureDelegate: AnyObject {
     /// - Parameters:
     ///   - isBodyFullyVisible: True if all major joints (head to ankles) are in frame and the person is far enough away.
     ///   - boundingBox: The UIKit-coordinate bounding box of the detected body.
-    func visionCapture(_ controller: VisionCaptureController, didUpdateBodyState isBodyFullyVisible: Bool, boundingBox: CGRect)
+    ///   - joints: The screen coordinates of all detected joints.
+    ///   - lines: The pairs of screen coordinates to connect with lines to draw the skeleton.
+    func visionCapture(_ controller: VisionCaptureController, didUpdateBodyState isBodyFullyVisible: Bool, boundingBox: CGRect, joints: [CGPoint], lines: [(CGPoint, CGPoint)])
     
     /// Called when the photo is automatically captured.
     func visionCapture(_ controller: VisionCaptureController, didCapturePhoto photo: UIImage)
@@ -158,7 +160,7 @@ extension VisionCaptureController: AVCaptureVideoDataOutputSampleBufferDelegate 
             guard let results = request.results as? [VNHumanBodyPoseObservation], let pose = results.first else {
                 // No body found
                 DispatchQueue.main.async {
-                    self.delegate?.visionCapture(self, didUpdateBodyState: false, boundingBox: .zero)
+                    self.delegate?.visionCapture(self, didUpdateBodyState: false, boundingBox: .zero, joints: [], lines: [])
                 }
                 return
             }
@@ -171,30 +173,30 @@ extension VisionCaptureController: AVCaptureVideoDataOutputSampleBufferDelegate 
     }
     
     private func analyzePose(_ pose: VNHumanBodyPoseObservation) {
-        // We require specific joints to ensure the full body is in frame
+        // We require specific joints to ensure the full body is in frame.
+        // Relaxed from ankles to knees to make it slightly easier to trigger.
         let requiredJointNames: [VNHumanBodyPoseObservation.JointName] = [
-            .nose, .leftWrist, .rightWrist, .leftAnkle, .rightAnkle
+            .nose, .leftWrist, .rightWrist, .leftKnee, .rightKnee
         ]
         
         var isFullyVisible = true
-        var allPoints: [CGPoint] = []
+        var allNormalizedPoints: [CGPoint] = []
+        var jointDict: [VNHumanBodyPoseObservation.JointName: CGPoint] = [:]
         
         do {
             let recognizedPoints = try pose.recognizedPoints(.all)
             
-            // Check if essential joints are visible and have high enough confidence
-            for jointName in requiredJointNames {
-                if let point = recognizedPoints[jointName], point.confidence > 0.3 {
-                    // Points are normalized 0-1 with origin at bottom-left
-                    allPoints.append(point.location)
-                } else {
-                    isFullyVisible = false
-                }
+            // Collect all high confidence points
+            for (jointName, point) in recognizedPoints where point.confidence > 0.2 {
+                jointDict[jointName] = point.location
+                allNormalizedPoints.append(point.location)
             }
             
-            // Collect all high confidence points to build a bounding box
-            for (_, point) in recognizedPoints where point.confidence > 0.3 {
-                allPoints.append(point.location)
+            // Check required joints
+            for jointName in requiredJointNames {
+                if jointDict[jointName] == nil {
+                    isFullyVisible = false
+                }
             }
             
         } catch {
@@ -203,39 +205,62 @@ extension VisionCaptureController: AVCaptureVideoDataOutputSampleBufferDelegate 
         
         // Calculate Bounding Box
         var boundingBox: CGRect = .zero
-        if !allPoints.isEmpty {
-            let minX = allPoints.map { $0.x }.min()!
-            let maxX = allPoints.map { $0.x }.max()!
-            let minY = allPoints.map { $0.y }.min()!
-            let maxY = allPoints.map { $0.y }.max()!
+        var screenJoints: [CGPoint] = []
+        var screenLines: [(CGPoint, CGPoint)] = []
+        
+        if !allNormalizedPoints.isEmpty {
+            let minX = allNormalizedPoints.map { $0.x }.min()!
+            let maxX = allNormalizedPoints.map { $0.x }.max()!
+            let minY = allNormalizedPoints.map { $0.y }.min()!
+            let maxY = allNormalizedPoints.map { $0.y }.max()!
             
-            // Vision coordinates have origin at bottom-left. We must flip Y.
-            // Also, we pad the box slightly so it looks better as a UI element.
             let padding: CGFloat = 0.05
-            
             let normalizedRect = CGRect(
                 x: max(0, minX - padding),
-                y: max(0, (1.0 - maxY) - padding), // Flip Y
+                y: max(0, (1.0 - maxY) - padding), // Flip Y for Vision -> UIKit
                 width: min(1.0, (maxX - minX) + (padding * 2)),
                 height: min(1.0, (maxY - minY) + (padding * 2))
             )
             
-            // Translate to UIKit coordinates synchronously on main thread
+            // Helper to convert a normalized Vision point to screen coordinates
+            func convertPoint(_ point: CGPoint) -> CGPoint {
+                let normalized = CGPoint(x: point.x, y: 1.0 - point.y)
+                return previewLayer.layerPointConverted(fromCaptureDevicePoint: normalized)
+            }
+            
             DispatchQueue.main.sync {
-                let screenRect = previewLayer.layerRectConverted(fromMetadataOutputRect: normalizedRect)
-                boundingBox = screenRect
+                boundingBox = previewLayer.layerRectConverted(fromMetadataOutputRect: normalizedRect)
+                
+                // Map all joints
+                screenJoints = jointDict.values.map { convertPoint($0) }
+                
+                // Define connections to draw the skeleton
+                let connections: [(VNHumanBodyPoseObservation.JointName, VNHumanBodyPoseObservation.JointName)] = [
+                    (.nose, .neck),
+                    (.neck, .leftShoulder), (.leftShoulder, .leftElbow), (.leftElbow, .leftWrist),
+                    (.neck, .rightShoulder), (.rightShoulder, .rightElbow), (.rightElbow, .rightWrist),
+                    (.neck, .root),
+                    (.root, .leftHip), (.leftHip, .leftKnee), (.leftKnee, .leftAnkle),
+                    (.root, .rightHip), (.rightHip, .rightKnee), (.rightKnee, .rightAnkle)
+                ]
+                
+                for connection in connections {
+                    if let start = jointDict[connection.0], let end = jointDict[connection.1] {
+                        screenLines.append((convertPoint(start), convertPoint(end)))
+                    }
+                }
             }
         }
         
-        // Ensure the person is taking up a good amount of the screen, but not overflowing.
-        // A full body should have a height between 50% and 90% of the screen.
+        // Ensure the person is taking up a good amount of the screen.
+        // Relaxed height ratio for easier testing.
         let bodyHeightRatio = boundingBox.height / UIScreen.main.bounds.height
-        if bodyHeightRatio < 0.5 || bodyHeightRatio > 0.95 {
+        if bodyHeightRatio < 0.4 || bodyHeightRatio > 0.95 {
             isFullyVisible = false
         }
         
         DispatchQueue.main.async {
-            self.delegate?.visionCapture(self, didUpdateBodyState: isFullyVisible, boundingBox: boundingBox)
+            self.delegate?.visionCapture(self, didUpdateBodyState: isFullyVisible, boundingBox: boundingBox, joints: screenJoints, lines: screenLines)
         }
     }
 }
