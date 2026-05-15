@@ -86,6 +86,51 @@ class VisionCaptureController: UIViewController {
         }
     }
     
+    private var isFrontCamera = false
+    
+    func flipCamera() {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            self.captureSession.beginConfiguration()
+            
+            // Remove existing input
+            guard let currentInput = self.captureSession.inputs.first as? AVCaptureDeviceInput else {
+                self.captureSession.commitConfiguration()
+                return
+            }
+            self.captureSession.removeInput(currentInput)
+            
+            // Toggle camera position
+            self.isFrontCamera.toggle()
+            let newPosition: AVCaptureDevice.Position = self.isFrontCamera ? .front : .back
+            
+            guard let newDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: newPosition),
+                  let newInput = try? AVCaptureDeviceInput(device: newDevice) else {
+                // Revert if failed
+                self.captureSession.addInput(currentInput)
+                self.isFrontCamera.toggle()
+                self.captureSession.commitConfiguration()
+                return
+            }
+            
+            if self.captureSession.canAddInput(newInput) {
+                self.captureSession.addInput(newInput)
+            } else {
+                self.captureSession.addInput(currentInput)
+                self.isFrontCamera.toggle()
+            }
+            
+            // Re-apply video orientation
+            if let connection = self.videoOutput.connection(with: .video), connection.isVideoOrientationSupported {
+                connection.videoOrientation = .portrait
+                // Fix mirroring for front camera tracking
+                connection.isVideoMirrored = self.isFrontCamera
+            }
+            
+            self.captureSession.commitConfiguration()
+        }
+    }
+    
     func capturePhotoNow() {
         guard !isCapturing else { return }
         isCapturing = true

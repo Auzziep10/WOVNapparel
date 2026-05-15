@@ -13,6 +13,7 @@ struct CameraView: View {
     @State private var boundingBox: CGRect = .zero
     @State private var isBodyFullyVisible: Bool = false
     @State private var shouldCapture: Bool = false
+    @State private var shouldFlipCamera: Bool = false
     @State private var countdown: Int = 3
     @State private var timer: Timer? = nil
     
@@ -58,7 +59,7 @@ struct CameraView: View {
                 }
             } else {
                 // Live AR Camera View
-                VisionCaptureView(isBodyFullyVisible: $isBodyFullyVisible, boundingBox: $boundingBox, capturedImage: $technicalImage, shouldCapture: $shouldCapture)
+                VisionCaptureView(isBodyFullyVisible: $isBodyFullyVisible, boundingBox: $boundingBox, capturedImage: $technicalImage, shouldCapture: $shouldCapture, shouldFlipCamera: $shouldFlipCamera)
                     .ignoresSafeArea()
                 
                 // Dynamic AR Box Overlay
@@ -78,7 +79,7 @@ struct CameraView: View {
                         .shadow(color: .black, radius: 10)
                 }
                 
-                // Header Instructions
+                // Header Instructions & Controls
                 VStack {
                     VStack(spacing: 4) {
                         Text(isBodyFullyVisible ? "PERFECT POSITION" : "TECHNICAL MEASUREMENT")
@@ -96,6 +97,23 @@ struct CameraView: View {
                     .background(Color.black.opacity(0.8))
                     
                     Spacer()
+                    
+                    // Camera Flip Button
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            shouldFlipCamera = true
+                        }) {
+                            Image(systemName: "arrow.triangle.2.circlepath.camera")
+                                .font(.system(size: 24))
+                                .foregroundColor(.white)
+                                .padding(16)
+                                .background(Color.black.opacity(0.6))
+                                .clipShape(Circle())
+                        }
+                        .padding(.trailing, 24)
+                        .padding(.bottom, 40)
+                    }
                 }
             }
         }

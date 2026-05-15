@@ -8,6 +8,9 @@ struct VisionCaptureView: UIViewControllerRepresentable {
     // An external trigger to fire the capture from SwiftUI (e.g. after countdown)
     @Binding var shouldCapture: Bool
     
+    // Trigger to flip the camera
+    @Binding var shouldFlipCamera: Bool
+    
     func makeUIViewController(context: Context) -> VisionCaptureController {
         let controller = VisionCaptureController()
         controller.delegate = context.coordinator
@@ -19,6 +22,13 @@ struct VisionCaptureView: UIViewControllerRepresentable {
             DispatchQueue.main.async {
                 self.shouldCapture = false // reset the trigger immediately
                 uiViewController.capturePhotoNow()
+            }
+        }
+        
+        if shouldFlipCamera {
+            DispatchQueue.main.async {
+                self.shouldFlipCamera = false
+                uiViewController.flipCamera()
             }
         }
     }

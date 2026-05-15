@@ -34,6 +34,8 @@
 		C262AC778143BCFE647C1750 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 29F1EDEB97A8C99BD090100F /* FirebaseFirestore */; };
 		CD0B678F8E262FC3844D54B0 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 352414B7A0293A7D9F5780DD /* FirebaseStorage */; };
 		D28260BB449B9FBEA67D07F3 /* TryOnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11139B38687CDEBB85F87327 /* TryOnView.swift */; };
+		E8DB61562FB7AE1E00412BCC /* VisionCaptureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DB61542FB7AE1E00412BCC /* VisionCaptureController.swift */; };
+		E8DB61572FB7AE1E00412BCC /* VisionCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DB61552FB7AE1E00412BCC /* VisionCaptureView.swift */; };
 		EA88532B9E5AC00551B6AD3E /* AppFlowState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B26CE6D5049EDB66C973417 /* AppFlowState.swift */; };
 /* End PBXBuildFile section */
 
@@ -62,6 +64,8 @@
 		E567356E5494035F3C1EA858 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
 		E6C3CC5FF064F5430661DA82 /* IdentityCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityCaptureView.swift; sourceTree = "<group>"; };
 		E8DB61532FB7A73900412BCC /* WOVNapparel-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "WOVNapparel-Info.plist"; sourceTree = "<group>"; };
+		E8DB61542FB7AE1E00412BCC /* VisionCaptureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionCaptureController.swift; sourceTree = "<group>"; };
+		E8DB61552FB7AE1E00412BCC /* VisionCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionCaptureView.swift; sourceTree = "<group>"; };
 		E9B6719E23161D9E96F363F4 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
 		F4CDCB8EDA1AC7E101250AC8 /* SpectrophotometricSkinAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrophotometricSkinAnalyzer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -128,6 +132,8 @@
 		A71F43D6CAC5E5C0F7D53555 /* Camera */ = {
 			isa = PBXGroup;
 			children = (
+				E8DB61542FB7AE1E00412BCC /* VisionCaptureController.swift */,
+				E8DB61552FB7AE1E00412BCC /* VisionCaptureView.swift */,
 				85BE6BF4ED35C44272358267 /* ARScannerView.swift */,
 				CA3B4D64B80E17CE6629E84B /* CameraManager.swift */,
 				6D8E1E248DC72091BF38EDAD /* CameraPreview.swift */,
@@ -285,6 +291,8 @@
 				7F02DFCB7BF72E70F1C8459C /* CameraPreview.swift in Sources */,
 				9E9AC7D08190464FFC158EFA /* CameraView.swift in Sources */,
 				90E3FC20E77189E5992E5812 /* ContentView.swift in Sources */,
+				E8DB61562FB7AE1E00412BCC /* VisionCaptureController.swift in Sources */,
+				E8DB61572FB7AE1E00412BCC /* VisionCaptureView.swift in Sources */,
 				48BC8B9D4893751AD0286591 /* FirebaseManager.swift in Sources */,
 				14E02E90AB68B267F1B997CC /* GuidedFaceCaptureView.swift in Sources */,
 				0FAF70CD1EBB1787B6A630EA /* IdentityCaptureView.swift in Sources */,
