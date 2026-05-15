@@ -30,17 +30,17 @@ struct ImagePicker: UIViewControllerRepresentable {
             
             let passThroughOverlay = PassThroughView(frame: UIScreen.main.bounds)
             
-            let label = UILabel(frame: CGRect(x: 0, y: 100, width: UIScreen.main.bounds.width, height: 100))
+            let label = UILabel(frame: CGRect(x: 0, y: UIScreen.main.bounds.height / 2 - 50, width: UIScreen.main.bounds.width, height: 100))
             label.textAlignment = .center
             label.textColor = .white
-            label.font = UIFont.systemFont(ofSize: 72, weight: .bold)
+            label.font = UIFont.systemFont(ofSize: 120, weight: .bold)
             label.layer.shadowColor = UIColor.black.cgColor
             label.layer.shadowOffset = .zero
             label.layer.shadowOpacity = 0.5
             label.layer.shadowRadius = 5
             label.text = "10"
             
-            let startButton = UIButton(frame: CGRect(x: UIScreen.main.bounds.width / 2 - 75, y: 220, width: 150, height: 50))
+            let startButton = UIButton(frame: CGRect(x: UIScreen.main.bounds.width / 2 - 75, y: UIScreen.main.bounds.height - 220, width: 150, height: 50))
             startButton.backgroundColor = UIColor(white: 0, alpha: 0.7)
             startButton.setTitle("START 10s TIMER", for: .normal)
             startButton.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)

@@ -69,27 +69,20 @@ struct CameraView: View {
                 
                 // Header Instructions
                 VStack {
-                    HStack {
-                        Button(action: {
-                            appState.currentRoute = .onboardingPhotos
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 30))
-                                .foregroundColor(.white)
-                                .padding()
-                        }
-                        Spacer()
+                    VStack(spacing: 4) {
+                        Text("TECHNICAL MEASUREMENT")
+                            .font(.system(size: 14, weight: .bold))
+                            .tracking(2)
+                            .foregroundColor(.white)
+                        
+                        Text("Stand perfectly inside the green silhouette.")
+                            .font(.system(size: 14))
+                            .foregroundColor(.white)
                     }
-                    
-                    Text("TECHNICAL MEASUREMENT")
-                        .font(.system(size: 14, weight: .bold))
-                        .tracking(2)
-                        .foregroundColor(.white)
-                        .padding(.top, -40)
-                    
-                    Text("Stand perfectly inside the green silhouette.")
-                        .font(.system(size: 14))
-                        .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .padding(.top, 40) // Safe area
+                    .background(Color.black.opacity(0.8))
                     
                     Spacer()
                 }
