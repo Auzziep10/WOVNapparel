@@ -100,6 +100,15 @@ class AppFlowState: ObservableObject {
             do {
                 let userId = FirebaseAuth.Auth.auth().currentUser?.uid ?? mockSessionId
                 
+                // If we are using the mock session, Firebase Storage will block the upload and hang infinitely.
+                // Skip the upload and proceed to Try-On.
+                if userId == mockSessionId {
+                    print("Notice: Using mock session. Skipping Firebase upload to prevent infinite hang.")
+                    self.isUploadingToCloud = false
+                    self.currentRoute = .tryOn(techPackId: selectedOccasion)
+                    return
+                }
+                
                 self.uploadProgressText = "Encrypting & Syncing Photos..."
                 
                 // Upload images concurrently

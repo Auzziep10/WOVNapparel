@@ -61,6 +61,7 @@
 		CA3B4D64B80E17CE6629E84B /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 		E567356E5494035F3C1EA858 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
 		E6C3CC5FF064F5430661DA82 /* IdentityCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityCaptureView.swift; sourceTree = "<group>"; };
+		E8DB61532FB7A73900412BCC /* WOVNapparel-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "WOVNapparel-Info.plist"; sourceTree = "<group>"; };
 		E9B6719E23161D9E96F363F4 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
 		F4CDCB8EDA1AC7E101250AC8 /* SpectrophotometricSkinAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpectrophotometricSkinAnalyzer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -192,6 +193,7 @@
 		FC21B46D958BDCB54BCAB8B0 = {
 			isa = PBXGroup;
 			children = (
+				E8DB61532FB7A73900412BCC /* WOVNapparel-Info.plist */,
 				4237B85D3F196EA617C5079B /* App */,
 				DC5BC6CBE1ECC28D9A9FFB36 /* Core */,
 				AEEC4390D57615A772AC0E52 /* Features */,
@@ -429,6 +431,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = MHZ56UTH96;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "WOVNapparel-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "\"WOVN requires camera access to perform 3D spatial sizing and skin tone analysis.\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -450,6 +453,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				DEVELOPMENT_TEAM = MHZ56UTH96;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "WOVNapparel-Info.plist";
 				INFOPLIST_KEY_NSCameraUsageDescription = "\"WOVN requires camera access to perform 3D spatial sizing and skin tone analysis.\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
