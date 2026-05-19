@@ -106,15 +106,15 @@ export default function GarmentGrid({ techPacks }: { techPacks: any[] }) {
                         <div className="space-y-3">
                             <div className="flex justify-between border-b border-white/5 pb-2">
                                 <span className="text-zinc-400">Garment Type</span>
-                                <span className="text-white font-medium">{selectedPack.properties?.garmentType || 'N/A'}</span>
+                                <span className="text-white font-medium">{selectedPack.garmentType || 'N/A'}</span>
                             </div>
                             <div className="flex justify-between border-b border-white/5 pb-2">
                                 <span className="text-zinc-400">Occasion</span>
-                                <span className="text-blue-400 font-medium">{selectedPack.properties?.occasion || 'N/A'}</span>
+                                <span className="text-blue-400 font-medium">{selectedPack.occasion || 'N/A'}</span>
                             </div>
                             <div className="flex justify-between border-b border-white/5 pb-2">
                                 <span className="text-zinc-400">Audience</span>
-                                <span className="text-white font-medium">{selectedPack.properties?.audience || 'N/A'}</span>
+                                <span className="text-white font-medium">{selectedPack.audience || 'N/A'}</span>
                             </div>
                         </div>
                     </div>
@@ -122,9 +122,9 @@ export default function GarmentGrid({ techPacks }: { techPacks: any[] }) {
                     {/* Colorways Visualizer */}
                     <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-5">
                         <h3 className="text-sm uppercase tracking-wider text-zinc-500 font-bold mb-4">Dominant Colorways</h3>
-                        {selectedPack.properties?.dominantColorways && selectedPack.properties.dominantColorways.length > 0 ? (
+                        {selectedPack.dominantColorways && selectedPack.dominantColorways.length > 0 ? (
                             <div className="flex flex-col gap-3 max-h-40 overflow-y-auto pr-2">
-                                {selectedPack.properties.dominantColorways.map((cw: any, idx: number) => (
+                                {selectedPack.dominantColorways.map((cw: any, idx: number) => (
                                     <div key={idx} className="flex items-center gap-3 bg-white/5 p-2 rounded-xl">
                                         {cw.image && (
                                             <div className="w-10 h-10 rounded-lg bg-zinc-900 overflow-hidden shrink-0 border border-white/10">
