@@ -15,10 +15,12 @@
 		21C129D19F6C30D157E69F52 /* ProfileDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA861E6535D8D0ABDD83D9C5 /* ProfileDashboardView.swift */; };
 		24105CC3F575672FFF9D889F /* ARScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85BE6BF4ED35C44272358267 /* ARScannerView.swift */; };
 		335704A060ECD42864B851E5 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 91BA4DFF914AA7FC4D9668A7 /* GoogleService-Info.plist */; };
+		3FE5D467BB257BA0EA7FD4DB /* TryOnGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 669BECCC56045A2D95434E4C /* TryOnGalleryView.swift */; };
 		4314B21600E4E6B2C16B9F37 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6254B8500BD45340491BFEA /* ImagePicker.swift */; };
 		48BC8B9D4893751AD0286591 /* FirebaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46F548F2753F9AA38F148C30 /* FirebaseManager.swift */; };
 		4AC5CC6CE66DA5C483F3AC08 /* WOVNapparelApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95974DC5BA0476C873E8AC8 /* WOVNapparelApp.swift */; };
 		514654E067B1A9FB24AF617F /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E567356E5494035F3C1EA858 /* AuthenticationView.swift */; };
+		6A7B0C3EBFCCDA4E172C7F36 /* ChromaticAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CA739C27371C80240C7F858 /* ChromaticAnalyzer.swift */; };
 		6D0AE4BD5FC87911501D683A /* ARQuickLookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCCE955C5569D0E717EA370 /* ARQuickLookView.swift */; };
 		74274AA3CF953E22067CAFA2 /* BodyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E238E9D541BDD3E39CADE29 /* BodyScannerView.swift */; };
 		74518C85D8180B67C845037A /* LiDARSizingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF445875DF6CCC6D9C8D09E7 /* LiDARSizingEngine.swift */; };
@@ -34,6 +36,7 @@
 		C262AC778143BCFE647C1750 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 29F1EDEB97A8C99BD090100F /* FirebaseFirestore */; };
 		CD0B678F8E262FC3844D54B0 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 352414B7A0293A7D9F5780DD /* FirebaseStorage */; };
 		D28260BB449B9FBEA67D07F3 /* TryOnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11139B38687CDEBB85F87327 /* TryOnView.swift */; };
+		D2FDEB365C9BB7A7AC464645 /* TryOnDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBD188481699DC0CC8A6E6FB /* TryOnDetailView.swift */; };
 		E8DB61562FB7AE1E00412BCC /* VisionCaptureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DB61542FB7AE1E00412BCC /* VisionCaptureController.swift */; };
 		E8DB61572FB7AE1E00412BCC /* VisionCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8DB61552FB7AE1E00412BCC /* VisionCaptureView.swift */; };
 		E8DB61592FB7C3DA00412BCC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E8DB61582FB7C3DA00412BCC /* Assets.xcassets */; };
@@ -47,6 +50,7 @@
 		46F548F2753F9AA38F148C30 /* FirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseManager.swift; sourceTree = "<group>"; };
 		4F75C4DC3F7091F292F8B52A /* WOVNapparel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WOVNapparel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B26CE6D5049EDB66C973417 /* AppFlowState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFlowState.swift; sourceTree = "<group>"; };
+		669BECCC56045A2D95434E4C /* TryOnGalleryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TryOnGalleryView.swift; sourceTree = "<group>"; };
 		6D8E1E248DC72091BF38EDAD /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
 		6E238E9D541BDD3E39CADE29 /* BodyScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyScannerView.swift; sourceTree = "<group>"; };
 		72053D9BDA4CF355BC812687 /* ProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupView.swift; sourceTree = "<group>"; };
@@ -54,6 +58,7 @@
 		85BE6BF4ED35C44272358267 /* ARScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARScannerView.swift; sourceTree = "<group>"; };
 		85F5B849B35BAB8EFC222E48 /* OccasionDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OccasionDashboard.swift; sourceTree = "<group>"; };
 		91BA4DFF914AA7FC4D9668A7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		9CA739C27371C80240C7F858 /* ChromaticAnalyzer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChromaticAnalyzer.swift; sourceTree = "<group>"; };
 		A073E8E0508DF442274A6AFB /* GuidedFaceCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedFaceCaptureView.swift; sourceTree = "<group>"; };
 		A6254B8500BD45340491BFEA /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		A70908705E6BBEF247C7A4E1 /* SpatialSizingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialSizingEngine.swift; sourceTree = "<group>"; };
@@ -62,6 +67,7 @@
 		B95974DC5BA0476C873E8AC8 /* WOVNapparelApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WOVNapparelApp.swift; sourceTree = "<group>"; };
 		BF445875DF6CCC6D9C8D09E7 /* LiDARSizingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiDARSizingEngine.swift; sourceTree = "<group>"; };
 		CA3B4D64B80E17CE6629E84B /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
+		CBD188481699DC0CC8A6E6FB /* TryOnDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TryOnDetailView.swift; sourceTree = "<group>"; };
 		E567356E5494035F3C1EA858 /* AuthenticationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationView.swift; sourceTree = "<group>"; };
 		E6C3CC5FF064F5430661DA82 /* IdentityCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityCaptureView.swift; sourceTree = "<group>"; };
 		E8DB61532FB7A73900412BCC /* WOVNapparel-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "WOVNapparel-Info.plist"; sourceTree = "<group>"; };
@@ -96,6 +102,16 @@
 			path = Occasion;
 			sourceTree = "<group>";
 		};
+		26AFF18503519CB09EA24788 /* Gallery */ = {
+			isa = PBXGroup;
+			children = (
+				669BECCC56045A2D95434E4C /* TryOnGalleryView.swift */,
+				CBD188481699DC0CC8A6E6FB /* TryOnDetailView.swift */,
+			);
+			name = Gallery;
+			path = Features/Gallery;
+			sourceTree = "<group>";
+		};
 		4237B85D3F196EA617C5079B /* App */ = {
 			isa = PBXGroup;
 			children = (
@@ -115,6 +131,15 @@
 			path = TryOn;
 			sourceTree = "<group>";
 		};
+		7FDD90D4BF298CD2102A1641 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				26AFF18503519CB09EA24788 /* Gallery */,
+				CFB1250D2AB38A0283309843 /* Profile */,
+			);
+			name = Features;
+			sourceTree = "<group>";
+		};
 		84074101B7F41691257A8E7B /* Spectrophotometry */ = {
 			isa = PBXGroup;
 			children = (
@@ -129,6 +154,14 @@
 				E567356E5494035F3C1EA858 /* AuthenticationView.swift */,
 			);
 			path = Auth;
+			sourceTree = "<group>";
+		};
+		9B956DD45E54DD18EC08C71D /* WOVNapparel */ = {
+			isa = PBXGroup;
+			children = (
+				7FDD90D4BF298CD2102A1641 /* Features */,
+			);
+			name = WOVNapparel;
 			sourceTree = "<group>";
 		};
 		A71F43D6CAC5E5C0F7D53555 /* Camera */ = {
@@ -179,6 +212,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		CFB1250D2AB38A0283309843 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				9CA739C27371C80240C7F858 /* ChromaticAnalyzer.swift */,
+			);
+			name = Profile;
+			sourceTree = "<group>";
+		};
 		D2C60B637DA5727B38775101 /* Sizing */ = {
 			isa = PBXGroup;
 			children = (
@@ -207,6 +248,7 @@
 				DC5BC6CBE1ECC28D9A9FFB36 /* Core */,
 				AEEC4390D57615A772AC0E52 /* Features */,
 				C82E467D7626B75EF361ADD1 /* Products */,
+				9B956DD45E54DD18EC08C71D /* WOVNapparel */,
 			);
 			sourceTree = "<group>";
 		};
@@ -310,6 +352,9 @@
 				144EAC41BEB013E4EDA0C453 /* SpectrophotometricSkinAnalyzer.swift in Sources */,
 				D28260BB449B9FBEA67D07F3 /* TryOnView.swift in Sources */,
 				4AC5CC6CE66DA5C483F3AC08 /* WOVNapparelApp.swift in Sources */,
+				3FE5D467BB257BA0EA7FD4DB /* TryOnGalleryView.swift in Sources */,
+				D2FDEB365C9BB7A7AC464645 /* TryOnDetailView.swift in Sources */,
+				6A7B0C3EBFCCDA4E172C7F36 /* ChromaticAnalyzer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -441,6 +486,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = WOVNapparel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = MHZ56UTH96;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "WOVNapparel-Info.plist";
@@ -451,9 +497,14 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.wovn.WOVNapparel;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wovn.app;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -463,6 +514,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = WOVNapparel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = MHZ56UTH96;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "WOVNapparel-Info.plist";
@@ -473,9 +525,14 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.wovn.WOVNapparel;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wovn.app;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};

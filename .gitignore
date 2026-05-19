@@ -16,3 +16,5 @@ ios-app/WOVNapparel/.build/
 # Credentials
 serviceAccountKey.json
 GoogleService-Info.plist
+.vercel
+.env*.local

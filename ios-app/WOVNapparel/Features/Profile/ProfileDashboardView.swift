@@ -45,19 +45,99 @@ struct ProfileDashboardView: View {
                         }
                         .padding(.top, 20)
                         
+                        // MEASUREMENTS SECTION
+                        if !appState.userMetrics.isEmpty {
+                            VStack(spacing: 16) {
+                                HStack {
+                                    Text("MEASUREMENTS")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .tracking(1.5)
+                                        .foregroundColor(Color(red: 161/255, green: 161/255, blue: 170/255))
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 24)
+                                
+                                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                                    ForEach(appState.userMetrics.sorted(by: <), id: \.key) { key, value in
+                                        VStack(spacing: 4) {
+                                            Text(String(format: "%.1f\"", value))
+                                                .font(.system(size: 18, weight: .medium, design: .serif))
+                                                .foregroundColor(.black)
+                                            Text(key.uppercased().replacingOccurrences(of: "CM", with: ""))
+                                                .font(.system(size: 10, weight: .bold))
+                                                .tracking(1.0)
+                                                .foregroundColor(.gray)
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 16)
+                                        .background(Color.white)
+                                        .cornerRadius(12)
+                                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(red: 228/255, green: 228/255, blue: 231/255), lineWidth: 1))
+                                    }
+                                }
+                                .padding(.horizontal, 24)
+                            }
+                        }
+                        
+                        // SAVED TRY-ONS
+                        if !appState.savedTryOns.isEmpty {
+                            VStack(spacing: 16) {
+                                HStack {
+                                    Text("SAVED TRY-ONS")
+                                        .font(.system(size: 10, weight: .bold))
+                                        .tracking(1.5)
+                                        .foregroundColor(Color(red: 161/255, green: 161/255, blue: 170/255))
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 24)
+                                Button(action: {
+                                    appState.currentRoute = .gallery
+                                }) {
+                                    HStack {
+                                        Image(systemName: "photo.stack")
+                                            .font(.system(size: 20))
+                                            .foregroundColor(.black)
+                                        
+                                        Text("View Past Try-Ons Gallery")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.black)
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 16, weight: .semibold))
+                                            .foregroundColor(.gray)
+                                    }
+                                    .padding(.vertical, 16)
+                                    .padding(.horizontal, 20)
+                                    .background(Color.white)
+                                    .cornerRadius(12)
+                                    .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
+                                }
+                                .padding(.horizontal, 24)
+                            }
+                        }
+                        
                         // AVATAR ROW (Face & Profile)
                         HStack(spacing: 40) {
                             if let face = appState.faceImage {
                                 AvatarThumbnail(image: face, label: "FACE")
+                            } else if let remoteFace = appState.remoteFaceURL {
+                                RemoteAvatarThumbnail(urlString: remoteFace, label: "FACE")
                             }
+                            
                             if let profile = appState.profileImage {
                                 AvatarThumbnail(image: profile, label: "PROFILE")
+                            } else if let remoteProfile = appState.remoteProfileURL {
+                                RemoteAvatarThumbnail(urlString: remoteProfile, label: "PROFILE")
                             }
                         }
                         
                         // HERO IMAGE (Full Body)
                         if let bodyImage = appState.bodyImage {
                             HeroPhotoThumbnail(image: bodyImage, label: "FULL BODY")
+                        } else if let remoteBody = appState.remoteBodyURL {
+                            RemoteHeroPhotoThumbnail(urlString: remoteBody, label: "FULL BODY")
                         }
                         
                         // 3D SPATIAL SCAN (RealityKit + QuickLook)
@@ -170,7 +250,7 @@ struct AvatarThumbnail: View {
             Image(uiImage: image)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 120, height: 160) // 3:4 aspect ratio portrait
+                .frame(width: 120, height: 160)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(red: 228/255, green: 228/255, blue: 231/255), lineWidth: 1))
                 .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
@@ -193,9 +273,69 @@ struct HeroPhotoThumbnail: View {
                 .resizable()
                 .scaledToFill()
                 .frame(maxWidth: UIScreen.main.bounds.width - 48, maxHeight: 450)
-                .clipShape(RoundedRectangle(cornerRadius: 16)) // Softened the hero image corners to match
+                .clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(red: 228/255, green: 228/255, blue: 231/255), lineWidth: 1))
                 .shadow(color: .black.opacity(0.08), radius: 20, y: 10)
+            
+            Text(label)
+                .font(.system(size: 10, weight: .bold))
+                .tracking(1.5)
+                .foregroundColor(Color(red: 161/255, green: 161/255, blue: 170/255))
+        }
+    }
+}
+
+struct RemoteAvatarThumbnail: View {
+    let urlString: String
+    let label: String
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            AsyncImage(url: URL(string: urlString)) { phase in
+                if let image = phase.image {
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 120, height: 160)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color(red: 228/255, green: 228/255, blue: 231/255), lineWidth: 1))
+                        .shadow(color: .black.opacity(0.05), radius: 10, y: 5)
+                } else {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(red: 228/255, green: 228/255, blue: 231/255))
+                        .frame(width: 120, height: 160)
+                }
+            }
+            
+            Text(label)
+                .font(.system(size: 10, weight: .bold))
+                .tracking(1.5)
+                .foregroundColor(Color(red: 161/255, green: 161/255, blue: 170/255))
+        }
+    }
+}
+
+struct RemoteHeroPhotoThumbnail: View {
+    let urlString: String
+    let label: String
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            AsyncImage(url: URL(string: urlString)) { phase in
+                if let image = phase.image {
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: UIScreen.main.bounds.width - 48, maxHeight: 450)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color(red: 228/255, green: 228/255, blue: 231/255), lineWidth: 1))
+                        .shadow(color: .black.opacity(0.08), radius: 20, y: 10)
+                } else {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(red: 228/255, green: 228/255, blue: 231/255))
+                        .frame(maxWidth: UIScreen.main.bounds.width - 48, maxHeight: 450)
+                }
+            }
             
             Text(label)
                 .font(.system(size: 10, weight: .bold))

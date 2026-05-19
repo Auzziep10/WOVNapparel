@@ -143,14 +143,16 @@ struct AuthenticationView: View {
         
         Task {
             do {
+                let uid: String
                 if isSignUp {
-                    try await FirebaseManager.shared.signUp(email: email, password: password)
+                    uid = try await FirebaseManager.shared.signUp(email: email, password: password)
                 } else {
-                    try await FirebaseManager.shared.signIn(email: email, password: password)
+                    uid = try await FirebaseManager.shared.signIn(email: email, password: password)
                 }
                 
                 DispatchQueue.main.async {
                     appState.isAuthenticated = true
+                    appState.fetchUserData(userId: uid)
                     isLoading = false
                 }
             } catch {

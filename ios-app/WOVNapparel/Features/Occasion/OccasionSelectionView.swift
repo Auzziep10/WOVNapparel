@@ -24,6 +24,52 @@ struct OccasionSelectionView: View {
                 Color(white: 0.9).ignoresSafeArea()
             }
             
+
+            
+            // Custom Wheel Picker
+            GeometryReader { geometry in
+                let midY = geometry.size.height / 2
+                
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        ForEach(0..<occasions.count, id: \.self) { index in
+                            GeometryReader { itemGeometry in
+                                let itemMidY = itemGeometry.frame(in: .global).midY
+                                let distance = abs(midY - itemMidY)
+                                let isSelected = distance < 40 // Close to center
+                                
+                                Text(occasions[index])
+                                    // Elegant Serif styling to match WOVN Garment Catalog
+                                    .font(.system(size: isSelected ? 48 : 36, weight: isSelected ? .medium : .light, design: .serif))
+                                    .italic(isSelected)
+                                    .foregroundColor(isSelected ? .black : .black.opacity(0.3))
+                                    .frame(maxWidth: .infinity)
+                                    .scaleEffect(isSelected ? 1.0 : 0.8)
+                                    .animation(.easeOut(duration: 0.2), value: isSelected)
+                                    .onTapGesture {
+                                        let generator = UISelectionFeedbackGenerator()
+                                        generator.selectionChanged()
+                                        self.selectedIndex = index
+                                        appState.uploadIdentityData(selectedOccasion: occasions[index])
+                                    }
+                                    .onChange(of: isSelected) { newlySelected in
+                                        if newlySelected {
+                                            let generator = UISelectionFeedbackGenerator()
+                                            generator.selectionChanged()
+                                            self.selectedIndex = index
+                                        }
+                                    }
+                            }
+                            .frame(height: 80)
+                        }
+                    }
+                    .scrollTargetLayout()
+                }
+                .scrollTargetBehavior(.viewAligned) // Requires iOS 17
+                .safeAreaPadding(.vertical, midY - 40) // The safe area padding pushes the alignment target exactly to the center!
+            }
+            .ignoresSafeArea()
+            
             // Logo Top Left & Back Button
             VStack {
                 HStack(alignment: .center, spacing: 16) {
@@ -51,65 +97,6 @@ struct OccasionSelectionView: View {
                 }
                 .padding(.top, 20)
                 Spacer()
-            }
-            
-            // Custom Wheel Picker
-            GeometryReader { geometry in
-                let midY = geometry.size.height / 2
-                
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        ForEach(0..<occasions.count, id: \.self) { index in
-                            GeometryReader { itemGeometry in
-                                let itemMidY = itemGeometry.frame(in: .global).midY
-                                let distance = abs(midY - itemMidY)
-                                let isSelected = distance < 40 // Close to center
-                                
-                                Text(occasions[index])
-                                    // Elegant Serif styling to match WOVN Garment Catalog
-                                    .font(.system(size: isSelected ? 48 : 36, weight: isSelected ? .medium : .light, design: .serif))
-                                    .italic(isSelected)
-                                    .foregroundColor(isSelected ? .black : .black.opacity(0.3))
-                                    .frame(maxWidth: .infinity)
-                                    .scaleEffect(isSelected ? 1.0 : 0.8)
-                                    .animation(.easeOut(duration: 0.2), value: isSelected)
-                                    .onChange(of: isSelected) { newlySelected in
-                                        if newlySelected {
-                                            let generator = UISelectionFeedbackGenerator()
-                                            generator.selectionChanged()
-                                            self.selectedIndex = index
-                                        }
-                                    }
-                            }
-                            .frame(height: 80)
-                        }
-                    }
-                    .scrollTargetLayout()
-                }
-                .scrollTargetBehavior(.viewAligned) // Requires iOS 17
-                .safeAreaPadding(.vertical, midY - 40) // The safe area padding pushes the alignment target exactly to the center!
-            }
-            .ignoresSafeArea()
-            
-            // Next Button
-            VStack {
-                Spacer()
-                Button(action: {
-                    let selectedOccasion = occasions[selectedIndex]
-                    appState.uploadIdentityData(selectedOccasion: selectedOccasion)
-                }) {
-                    Text("Select Occasion")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.black)
-                        .cornerRadius(30)
-                        .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
-                }
-                .padding(.horizontal, 40)
-                .padding(.bottom, 40)
-                .disabled(appState.isUploadingToCloud)
             }
             
             // Cloud Sync Overlay

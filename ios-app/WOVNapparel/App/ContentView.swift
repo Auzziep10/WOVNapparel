@@ -9,6 +9,17 @@ struct ContentView: View {
                 AuthenticationView()
             } else {
                 switch appState.currentRoute {
+                case .loading:
+                    VStack(spacing: 24) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .black))
+                            .scaleEffect(1.5)
+                        Text("Syncing Profile...")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.gray)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(red: 244/255, green: 244/255, blue: 245/255).ignoresSafeArea())
                 case .onboardingBasic:
                     ProfileSetupView()
                 case .onboardingPhotos:
@@ -31,6 +42,10 @@ struct ContentView: View {
                     }
                 case .tryOn(let techPackId):
                     TryOnView(occasion: techPackId)
+                case .gallery:
+                    TryOnGalleryView()
+                case .tryOnDetail(let render):
+                    TryOnDetailView(render: render)
                 }
             }
         }

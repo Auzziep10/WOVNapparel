@@ -51,4 +51,42 @@ class FirebaseManager {
         
         try await userRef.setData(data, merge: true)
     }
+    
+    /// Fetches the user profile data including measurements and remote photo URLs
+    func fetchUserProfile(userId: String) async throws -> (measurements: [String: Double]?, photos: [String: String]?) {
+        let snapshot = try await db.collection("users").document(userId).getDocument()
+        guard let data = snapshot.data() else {
+            return (nil, nil)
+        }
+        
+        let measurements = data["measurements"] as? [String: Double]
+        let photos = data["photos"] as? [String: String]
+        
+        return (measurements, photos)
+    }
+    
+    /// Fetches the list of saved AI Try-On URLs for the user
+    func fetchUserRenders(userId: String) async throws -> [SavedRender] {
+        let snapshot = try await db.collection("users").document(userId).collection("renders")
+            .order(by: "timestamp", descending: true)
+            .getDocuments()
+            
+        var renders: [SavedRender] = []
+        for doc in snapshot.documents {
+            let data = doc.data()
+            if let url = data["url"] as? String {
+                let garmentId = data["garmentId"] as? String ?? "DEFAULT"
+                let occasion = data["occasion"] as? String ?? "Unknown"
+                
+                let render = SavedRender(
+                    id: doc.documentID,
+                    url: url,
+                    garmentId: garmentId,
+                    occasion: occasion
+                )
+                renders.append(render)
+            }
+        }
+        return renders
+    }
 }

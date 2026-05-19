@@ -9,5 +9,16 @@
 	</dict>
 	<key>privaPrivacy - Local Network Usage Description</key>
 	<string>Required to connect to local Next.js server.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.298732894039-k8rnr13t7ns2h8k4rfllb52ft5dh6tp3</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -1,6 +1,37 @@
 import SwiftUI
 import AuthenticationServices
 import FirebaseAuth
+import FirebaseCore
+import CryptoKit
+import GoogleSignIn
+
+// Utility function to generate a random nonce
+private func randomNonceString(length: Int = 32) -> String {
+    precondition(length > 0)
+    var randomBytes = [UInt8](repeating: 0, count: length)
+    let errorCode = SecRandomCopyBytes(kSecRandomDefault, randomBytes.count, &randomBytes)
+    if errorCode != errSecSuccess {
+        fatalError("Unable to generate nonce. SecRandomCopyBytes failed with OSStatus \(errorCode)")
+    }
+    
+    let charset: [Character] =
+        Array("0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._")
+    let nonce = randomBytes.map { byte in
+        charset[Int(byte) % charset.count]
+    }
+    
+    return String(nonce)
+}
+
+private func sha256(_ input: String) -> String {
+    let inputData = Data(input.utf8)
+    let hashedData = SHA256.hash(data: inputData)
+    let hashString = hashedData.compactMap {
+        String(format: "%02x", $0)
+    }.joined()
+    
+    return hashString
+}
 
 struct Garment: Identifiable, Codable, Equatable {
     let id: String
@@ -8,7 +39,15 @@ struct Garment: Identifiable, Codable, Equatable {
     let thumbnail: String
 }
 
+struct SavedRender: Identifiable, Equatable {
+    let id: String
+    let url: String
+    let garmentId: String
+    let occasion: String
+}
+
 enum AppRoute: Equatable {
+    case loading
     case onboardingBasic
     case onboardingPhotos
     case lidarCaptureFlow
@@ -16,11 +55,13 @@ enum AppRoute: Equatable {
     case profileReview
     case occasionSelection
     case tryOn(techPackId: String)
+    case gallery
+    case tryOnDetail(render: SavedRender)
 }
 
 class AppFlowState: ObservableObject {
     @Published var isAuthenticated: Bool = false
-    @Published var currentRoute: AppRoute = .onboardingBasic
+    @Published var currentRoute: AppRoute = .loading
     
     // We will sync this with Firestore shortly
     @Published var hasProfile: Bool = false
@@ -43,36 +84,161 @@ class AppFlowState: ObservableObject {
     @Published var generatedImageURL: URL? = nil
     
     // Catalog & Cache State
-    @Published var recommendedGarments: [Garment] = []
+    @Published var recommendedGarments: [Garment] = [
+        Garment(id: "g_shirt_1", type: "top", thumbnail: "https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?w=200&h=200&fit=crop"),
+        Garment(id: "g_pant_1", type: "bottom", thumbnail: "https://images.unsplash.com/photo-1624378439575-d1ead6cb4600?w=200&h=200&fit=crop"),
+        Garment(id: "g_jacket_1", type: "outerwear", thumbnail: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=200&h=200&fit=crop")
+    ]
     @Published var selectedGarmentId: String? = nil
     @Published var renderCache: [String: URL] = [:]
+    
+    // Remote Data State
+    @Published var savedTryOns: [SavedRender] = []
+    @Published var remoteFaceURL: String? = nil
+    @Published var remoteProfileURL: String? = nil
+    @Published var remoteBodyURL: String? = nil
+    
+    // Mock Session ID for Demo Purposes when Firebase Auth is missing
+    @Published var mockSessionId: String = UUID().uuidString
+    
+    // OAuth Nonce
+    @Published var currentNonce: String?
+    
+    init() {
+        // Listen for authentication state changes automatically on app launch
+        FirebaseAuth.Auth.auth().addStateDidChangeListener { [weak self] auth, user in
+            guard let self = self else { return }
+            
+            if let user = user {
+                self.isAuthenticated = true
+                self.currentRoute = .loading
+                self.fetchUserData(userId: user.uid)
+            } else {
+                self.isAuthenticated = false
+                self.currentRoute = .onboardingBasic
+            }
+        }
+    }
+    
+    func fetchUserData(userId: String) {
+        Task { @MainActor in
+            do {
+                let (measurements, photos) = try await FirebaseManager.shared.fetchUserProfile(userId: userId)
+                
+                let tryOns = try await FirebaseManager.shared.fetchUserRenders(userId: userId)
+                self.savedTryOns = tryOns
+                
+                let hasMeasurements = !(measurements?.isEmpty ?? true)
+                let hasPhotos = !(photos?.isEmpty ?? true)
+                
+                // If they have BOTH photos and measurements, they've completed onboarding
+                if hasMeasurements && hasPhotos {
+                    self.hasProfile = true
+                    if let measurements = measurements { self.userMetrics = measurements }
+                    if let photos = photos {
+                        self.remoteFaceURL = photos["face"]
+                        self.remoteProfileURL = photos["profile"]
+                        self.remoteBodyURL = photos["body"]
+                    }
+                    self.currentRoute = .profileReview
+                } else {
+                    // Missing either photos or measurements, push them to onboarding!
+                    self.hasProfile = false
+                    self.currentRoute = .onboardingBasic
+                }
+            } catch {
+                print("Failed to fetch user data: \(error)")
+                self.hasProfile = false
+                self.currentRoute = .onboardingBasic
+            }
+        }
+    }
     
     func completeOnboarding() {
         hasProfile = true
         currentRoute = .profileReview
     }
     
-    // Mock Session ID for Demo Purposes when Firebase Auth is missing
-    @Published var mockSessionId: String = UUID().uuidString
-    
-    // MARK: - OAuth Handlers
     func handleAppleSignInRequest(_ request: ASAuthorizationAppleIDRequest) {
+        let nonce = randomNonceString()
+        self.currentNonce = nonce
         request.requestedScopes = [.fullName, .email]
+        request.nonce = sha256(nonce)
     }
     
     func handleAppleSignInCompletion(_ result: Result<ASAuthorization, Error>) {
         switch result {
         case .success(let authorization):
-            print("Apple Sign-In Success: \(authorization)")
-            self.isAuthenticated = true
+            if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+                guard let nonce = currentNonce else {
+                    print("Invalid state: A login callback was received, but no login request was sent.")
+                    return
+                }
+                guard let appleIDToken = appleIDCredential.identityToken else {
+                    print("Unable to fetch identity token")
+                    return
+                }
+                guard let idTokenString = String(data: appleIDToken, encoding: .utf8) else {
+                    print("Unable to serialize token string from data: \(appleIDToken.debugDescription)")
+                    return
+                }
+                
+                let credential = OAuthProvider.credential(withProviderID: "apple.com", idToken: idTokenString, rawNonce: nonce)
+                
+                Task {
+                    do {
+                        let authResult = try await Auth.auth().signIn(with: credential)
+                        DispatchQueue.main.async {
+                            self.isAuthenticated = true
+                            self.fetchUserData(userId: authResult.user.uid)
+                        }
+                    } catch {
+                        print("Error authenticating: \(error.localizedDescription)")
+                    }
+                }
+            }
         case .failure(let error):
             print("Apple Sign-In Failed: \(error.localizedDescription)")
         }
     }
     
     func signInWithGoogle() {
-        print("Google Sign In clicked")
-        self.isAuthenticated = true
+        guard let clientID = FirebaseApp.app()?.options.clientID else { return }
+        let config = GIDConfiguration(clientID: clientID)
+        GIDSignIn.sharedInstance.configuration = config
+        
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first,
+              let rootViewController = window.rootViewController else {
+            return
+        }
+        
+        GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { [weak self] result, error in
+            guard let self = self else { return }
+            guard error == nil else {
+                print("Google Sign In Error: \(error?.localizedDescription ?? "Unknown")")
+                return
+            }
+            
+            guard let user = result?.user,
+                  let idToken = user.idToken?.tokenString else {
+                return
+            }
+            
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken,
+                                                           accessToken: user.accessToken.tokenString)
+            Task {
+                do {
+                    let authResult = try await Auth.auth().signIn(with: credential)
+                    DispatchQueue.main.async {
+                        self.isAuthenticated = true
+                        self.fetchUserData(userId: authResult.user.uid)
+                    }
+                } catch {
+                    print("Firebase Google Auth Error: \(error.localizedDescription)")
+                }
+            }
+        }
     }
     
     func signOut() {
@@ -84,6 +250,46 @@ class AppFlowState: ObservableObject {
         } catch {
             print("Error signing out: \(error.localizedDescription)")
         }
+    }
+    
+    func fetchSizeRecommendation(techPackId: String) async throws -> String {
+        // Fallback or demo case
+        if techPackId == "DEFAULT" || techPackId.isEmpty {
+            return "Recommended Size: M"
+        }
+        
+        let url = URL(string: "https://wovn-apparel-companion.vercel.app/api/match")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let payload: [String: Any] = [
+            "techPackId": techPackId,
+            "userMetrics": [
+                "chestCm": (userMetrics["chest"] ?? 0) * 2.54, // converting inches to cm if needed, assuming userMetrics stores inches based on UI
+                "waistCm": (userMetrics["waist"] ?? 0) * 2.54,
+                "hipsCm": (userMetrics["hips"] ?? 0) * 2.54,
+                "chromaticContrastIndex": 50 // arbitrary default
+            ]
+        ]
+        
+        request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResp = response as? HTTPURLResponse, httpResp.statusCode == 200 else {
+            print("API Match failed with status \((response as? HTTPURLResponse)?.statusCode ?? 500)")
+            return "Size: Unknown"
+        }
+        
+        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let success = json["success"] as? Bool, success,
+           let responseData = json["data"] as? [String: Any],
+           let recommendedSize = responseData["recommendedSize"] as? String {
+            return "Recommended Size: \(recommendedSize)"
+        }
+        
+        return "Size: Unknown"
     }
     
     func uploadIdentityData(selectedOccasion: String) {
@@ -99,6 +305,10 @@ class AppFlowState: ObservableObject {
         Task { @MainActor in
             do {
                 let userId = FirebaseAuth.Auth.auth().currentUser?.uid ?? mockSessionId
+                
+                self.uploadProgressText = "Analyzing Chromatic Profile..."
+                let contrastIndex = await ChromaticAnalyzer.analyzeContrast(image: face)
+                self.userMetrics["chromaticContrastIndex"] = contrastIndex
                 
                 self.uploadProgressText = "Encrypting & Syncing Photos..."
                 

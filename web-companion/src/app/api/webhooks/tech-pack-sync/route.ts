@@ -60,6 +60,7 @@ export async function POST(request: Request) {
       fabricProperties: {
         stretchCoefficient: payload.stretchCoefficient || 1.0
       },
+      occasion: payload.occasion || 'General',
       dominantColorways: payload.dominantColorways || [
         { name: 'Default', lab: [50.0, 0.0, 0.0] }
       ],
