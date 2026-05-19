@@ -99,7 +99,7 @@ export default function GarmentGrid({ techPacks }: { techPacks: any[] }) {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-6 bg-zinc-950">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     {/* Key Attributes Visualizer */}
                     <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-5">
                         <h3 className="text-sm uppercase tracking-wider text-zinc-500 font-bold mb-4">Core Properties</h3>
@@ -140,6 +140,34 @@ export default function GarmentGrid({ techPacks }: { techPacks: any[] }) {
                             </div>
                         ) : (
                             <div className="text-zinc-500 text-sm italic">No colorways extracted.</div>
+                        )}
+                    </div>
+
+                    {/* Graded Matrices Visualizer */}
+                    <div className="bg-zinc-900/30 border border-white/5 rounded-2xl p-5">
+                        <h3 className="text-sm uppercase tracking-wider text-zinc-500 font-bold mb-4">Graded Matrices</h3>
+                        {selectedPack.matrices && Object.keys(selectedPack.matrices).length > 0 ? (
+                            <div className="flex flex-col gap-4 max-h-40 overflow-y-auto pr-2">
+                                {Object.entries(selectedPack.matrices).map(([key, data]: [string, any]) => (
+                                    <div key={key} className="flex flex-col gap-2">
+                                        <div className="text-xs text-white uppercase tracking-wider font-bold border-b border-white/10 pb-1">{key}</div>
+                                        {data.grades && Object.keys(data.grades).length > 0 ? (
+                                            <div className="flex flex-wrap gap-2">
+                                                {Object.entries(data.grades).map(([size, val]: [string, any]) => (
+                                                    <div key={size} className="flex items-center bg-black/40 rounded-lg overflow-hidden border border-white/5 text-[10px] font-mono">
+                                                        <span className="bg-white/10 px-2 py-1 text-zinc-300 font-bold border-r border-white/5">{size}</span>
+                                                        <span className="px-2 py-1 text-white">{val}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-[10px] text-zinc-500 italic">No grades defined</div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-zinc-500 text-sm italic">No matrices defined.</div>
                         )}
                     </div>
                 </div>
