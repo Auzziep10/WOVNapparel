@@ -42,7 +42,7 @@ export async function POST(request: Request) {
                 {
                     role: "user",
                     parts: [
-                        { text: "Analyze the dominant colors of the garment in this image. Return exactly 2 dominant colors. For each color, provide its name and its precise CIELAB (L*a*b*) values. You MUST return ONLY valid JSON in the following exact format, with no markdown formatting or backticks:\n[\n  {\"name\": \"Color Name\", \"lab\": [L, a, b]}\n]" },
+                        { text: "Analyze the primary color of the garment in this image. Return exactly 1 primary color. Provide its name and its precise CIELAB (L*a*b*) values. You MUST return ONLY valid JSON in the following exact format, with no markdown formatting or backticks:\n[\n  {\"name\": \"Color Name\", \"lab\": [L, a, b]}\n]" },
                         { inlineData: { data: base64Data, mimeType: "image/jpeg" } }
                     ]
                 }
