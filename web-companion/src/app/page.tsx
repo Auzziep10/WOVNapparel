@@ -1,6 +1,7 @@
 import { db } from '@/lib/firebase';
 import Image from 'next/image';
 import DeleteButton from '@/components/DeleteButton';
+import GarmentGrid from '@/components/GarmentGrid';
 
 export const revalidate = 0; // Force dynamic to always show the latest syncs
 
@@ -56,80 +57,7 @@ export default async function Dashboard() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {techPacks.map((pack) => (
-              <div 
-                key={pack.id} 
-                className="group relative flex flex-col bg-zinc-900/50 rounded-3xl border border-white/10 overflow-hidden hover:bg-zinc-800/50 transition-all duration-300 hover:shadow-[0_0_40px_rgba(0,0,0,0.5)] hover:-translate-y-1"
-              >
-                {/* Image Container */}
-                <div className="aspect-[4/5] w-full relative bg-zinc-950 overflow-hidden">
-                  
-                  <DeleteButton id={pack.id} />
-
-                  {pack.renderUrl ? (
-                    <img 
-                      src={pack.renderUrl} 
-                      alt={pack.name} 
-                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-800">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                    </div>
-                  )}
-                  
-                  {/* Size Badges */}
-                  <div className="absolute top-4 right-4 flex flex-col gap-1.5 items-end">
-                    <div className="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-bold tracking-wider text-white">
-                      BASE: {pack.baseSize}
-                    </div>
-                    {pack.matrices?.chest?.grades && Object.keys(pack.matrices.chest.grades).length > 0 && (
-                      <div className="bg-blue-600/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-[10px] font-bold tracking-wider text-white shadow-[0_0_10px_rgba(37,99,235,0.4)]">
-                        {Object.keys(pack.matrices.chest.grades).length} SIZES MATRIX
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Subtle Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-90" />
-                </div>
-
-                {/* Content */}
-                <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col justify-end">
-                  <h3 className="text-xl font-bold text-white mb-1 drop-shadow-md line-clamp-1">{pack.name}</h3>
-                  <div className="flex items-center gap-2 text-xs text-zinc-400 mb-4 font-medium uppercase tracking-wider">
-                    <span className="flex items-center gap-1.5">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-                      Database Synced
-                    </span>
-                  </div>
-
-                  {/* Measurement Data Grid */}
-                  <div className="grid grid-cols-2 gap-2 mt-auto">
-                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-3 flex flex-col justify-center">
-                      <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
-                        Chest
-                        {pack.matrices?.chest?.grades && (
-                           <span className="text-[8px] bg-white/10 px-1 rounded text-zinc-400">GRADED</span>
-                        )}
-                      </span>
-                      <span className="text-zinc-100 font-mono text-sm">{pack.measurements?.bustCm || '--'}</span>
-                    </div>
-                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-3 flex flex-col justify-center">
-                      <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
-                        Length
-                        {pack.matrices?.hem?.grades && (
-                           <span className="text-[8px] bg-white/10 px-1 rounded text-zinc-400">GRADED</span>
-                        )}
-                      </span>
-                      <span className="text-zinc-100 font-mono text-sm">{pack.measurements?.hemCm || '--'}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <GarmentGrid techPacks={techPacks} />
         )}
       </main>
     </div>
