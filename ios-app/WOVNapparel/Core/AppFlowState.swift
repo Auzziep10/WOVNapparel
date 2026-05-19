@@ -84,11 +84,7 @@ class AppFlowState: ObservableObject {
     @Published var generatedImageURL: URL? = nil
     
     // Catalog & Cache State
-    @Published var recommendedGarments: [Garment] = [
-        Garment(id: "g_shirt_1", type: "top", thumbnail: "https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?w=200&h=200&fit=crop"),
-        Garment(id: "g_pant_1", type: "bottom", thumbnail: "https://images.unsplash.com/photo-1624378439575-d1ead6cb4600?w=200&h=200&fit=crop"),
-        Garment(id: "g_jacket_1", type: "outerwear", thumbnail: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=200&h=200&fit=crop")
-    ]
+    @Published var recommendedGarments: [Garment] = []
     @Published var selectedGarmentId: String? = nil
     @Published var renderCache: [String: URL] = [:]
     
@@ -150,6 +146,28 @@ class AppFlowState: ObservableObject {
                 print("Failed to fetch user data: \(error)")
                 self.hasProfile = false
                 self.currentRoute = .onboardingBasic
+            }
+        }
+    }
+    
+    func loadGarments(for occasion: String) {
+        Task { @MainActor in
+            do {
+                let fetched = try await FirebaseManager.shared.fetchGarments(for: occasion)
+                if fetched.isEmpty {
+                    // Fallback to mock garments if the database is completely empty for this occasion
+                    self.recommendedGarments = [
+                        Garment(id: "g_shirt_1", type: "top", thumbnail: "https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?w=200&h=200&fit=crop"),
+                        Garment(id: "g_pant_1", type: "bottom", thumbnail: "https://images.unsplash.com/photo-1624378439575-d1ead6cb4600?w=200&h=200&fit=crop")
+                    ]
+                } else {
+                    self.recommendedGarments = fetched
+                }
+            } catch {
+                print("Failed to fetch garments: \(error)")
+                self.recommendedGarments = [
+                    Garment(id: "g_shirt_1", type: "top", thumbnail: "https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?w=200&h=200&fit=crop")
+                ]
             }
         }
     }
@@ -295,6 +313,7 @@ class AppFlowState: ObservableObject {
     func uploadIdentityData(selectedOccasion: String) {
         guard let face = faceImage, let profile = profileImage, let body = bodyImage else { 
             print("Notice: Missing photos. Skipping cloud upload and jumping to Try-On for demo purposes.")
+            self.loadGarments(for: selectedOccasion)
             self.currentRoute = .tryOn(techPackId: selectedOccasion)
             return 
         }
@@ -333,6 +352,7 @@ class AppFlowState: ObservableObject {
                 try await Task.sleep(nanoseconds: 1_000_000_000)
                 
                 self.isUploadingToCloud = false
+                self.loadGarments(for: selectedOccasion)
                 self.currentRoute = .tryOn(techPackId: selectedOccasion)
                 
             } catch {
@@ -340,6 +360,7 @@ class AppFlowState: ObservableObject {
                 self.uploadProgressText = "Sync Failed. Proceeding locally..."
                 try? await Task.sleep(nanoseconds: 1_500_000_000)
                 self.isUploadingToCloud = false
+                self.loadGarments(for: selectedOccasion)
                 self.currentRoute = .tryOn(techPackId: selectedOccasion)
             }
         }

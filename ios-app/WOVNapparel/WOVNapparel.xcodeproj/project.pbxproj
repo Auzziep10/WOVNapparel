@@ -58,7 +58,7 @@
 		85BE6BF4ED35C44272358267 /* ARScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARScannerView.swift; sourceTree = "<group>"; };
 		85F5B849B35BAB8EFC222E48 /* OccasionDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OccasionDashboard.swift; sourceTree = "<group>"; };
 		91BA4DFF914AA7FC4D9668A7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		9CA739C27371C80240C7F858 /* ChromaticAnalyzer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ChromaticAnalyzer.swift; sourceTree = "<group>"; };
+		9CA739C27371C80240C7F858 /* ChromaticAnalyzer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Features/Profile/ChromaticAnalyzer.swift; sourceTree = "<group>"; };
 		A073E8E0508DF442274A6AFB /* GuidedFaceCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedFaceCaptureView.swift; sourceTree = "<group>"; };
 		A6254B8500BD45340491BFEA /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		A70908705E6BBEF247C7A4E1 /* SpatialSizingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialSizingEngine.swift; sourceTree = "<group>"; };

@@ -89,4 +89,28 @@ class FirebaseManager {
         }
         return renders
     }
+    
+    /// Fetches available garments from Tech Packs based on occasion
+    func fetchGarments(for occasion: String) async throws -> [Garment] {
+        // We do a lowercase match to make it more robust, but Firestore requires exact matches or text search.
+        // Assuming occasion is passed exactly as stored.
+        let snapshot = try await db.collection("tech_packs")
+            .whereField("occasion", isEqualTo: occasion)
+            .order(by: "importedAt", descending: true)
+            .getDocuments()
+            
+        var garments: [Garment] = []
+        for doc in snapshot.documents {
+            let data = doc.data()
+            // We use the doc ID as the Garment ID so we can pass it to the synthesis backend
+            let garmentId = doc.documentID
+            let type = data["category"] as? String ?? "unknown"
+            
+            // The Tech Pack Creator sends renderUrl
+            if let thumbnailUrl = data["renderUrl"] as? String {
+                garments.append(Garment(id: garmentId, type: type, thumbnail: thumbnailUrl))
+            }
+        }
+        return garments
+    }
 }

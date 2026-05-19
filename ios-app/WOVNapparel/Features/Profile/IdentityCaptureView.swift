@@ -76,6 +76,17 @@ struct IdentityCaptureView: View {
                                 Text("Face ID style automated capture")
                                     .font(.system(size: 12))
                                     .foregroundColor(Color.zinc500)
+                                    
+                                if let contrast = appState.userMetrics["chromaticContrastIndex"] {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "sparkles")
+                                            .foregroundColor(.blue)
+                                        Text("Chromatic Profile: \(Int(contrast)) (\(contrast > 60 ? "High Contrast" : "Low Contrast"))")
+                                            .font(.system(size: 10, weight: .bold))
+                                            .foregroundColor(.blue)
+                                    }
+                                    .padding(.top, 2)
+                                }
                             }
                             Spacer()
                             
@@ -149,6 +160,14 @@ struct IdentityCaptureView: View {
         .preferredColorScheme(.light)
         .fullScreenCover(isPresented: $isShowingGuidedFaceCapture) {
             GuidedFaceCaptureView(faceImage: $appState.faceImage, profileImage: $appState.profileImage)
+        }
+        .onChange(of: appState.faceImage) { newFaceImage in
+            if let image = newFaceImage {
+                Task { @MainActor in
+                    let index = await ChromaticAnalyzer.analyzeContrast(image: image)
+                    appState.userMetrics["chromaticContrastIndex"] = index
+                }
+            }
         }
         .fullScreenCover(isPresented: $isShowingCamera) {
             ImagePicker(selectedImage: $appState.bodyImage, sourceType: imageSourceType)
