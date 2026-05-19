@@ -1,12 +1,22 @@
 import { NextResponse } from 'next/server';
 
+const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export async function OPTIONS(request: Request) {
+    return NextResponse.json({}, { headers: corsHeaders });
+}
+
 export async function POST(request: Request) {
     try {
         const body = await request.json();
         const { imageBase64 } = body;
 
         if (!imageBase64) {
-            return NextResponse.json({ success: false, error: 'Missing imageBase64' }, { status: 400 });
+            return NextResponse.json({ success: false, error: 'Missing imageBase64' }, { status: 400, headers: corsHeaders });
         }
 
         console.log("[AI] Initializing Gemini 1.5 Flash Color Extraction...");
@@ -74,10 +84,10 @@ export async function POST(request: Request) {
         }
 
         console.log(`[AI] Extracted Colorways:`, colorways);
-        return NextResponse.json({ success: true, colorways });
+        return NextResponse.json({ success: true, colorways }, { headers: corsHeaders });
 
     } catch (error: any) {
         console.error("[API] Error extracting colors:", error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        return NextResponse.json({ success: false, error: error.message }, { status: 500, headers: corsHeaders });
     }
 }
