@@ -36,7 +36,7 @@ export async function POST(request: Request) {
         // Extract base64 payload
         const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
 
-        const endpoint = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-1.5-flash:generateContent`;
+        const endpoint = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-2.0-flash:generateContent`;
         const payload = {
             contents: [
                 {
