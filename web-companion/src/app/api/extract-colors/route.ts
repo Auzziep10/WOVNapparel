@@ -32,13 +32,14 @@ export async function POST(request: Request) {
                 {
                     role: "user",
                     parts: [
-                        { text: "Analyze the dominant colors of the garment in this image. Return exactly 2 color names separated by a comma (e.g., 'Navy, Charcoal'). Do not return any other text or explanation. Only return the color names." },
+                        { text: "Analyze the dominant colors of the garment in this image. Return exactly 2 dominant colors. For each color, provide its name and its precise CIELAB (L*a*b*) values. You MUST return ONLY valid JSON in the following exact format, with no markdown formatting or backticks:\n[\n  {\"name\": \"Color Name\", \"lab\": [L, a, b]}\n]" },
                         { inlineData: { data: base64Data, mimeType: "image/jpeg" } }
                     ]
                 }
             ],
             generationConfig: {
-                temperature: 0.2
+                temperature: 0.1,
+                responseMimeType: "application/json"
             }
         };
 
@@ -57,19 +58,23 @@ export async function POST(request: Request) {
         }
 
         const aiData = await aiResponse.json();
-        let colorsText = "Navy, Black"; // fallback
+        let colorways: any[] = [];
 
         const candidates = aiData.candidates;
         if (candidates && candidates.length > 0) {
             for (const part of candidates[0].content?.parts || []) {
                 if (part.text) {
-                    colorsText = part.text.trim();
+                    try {
+                        colorways = JSON.parse(part.text.trim());
+                    } catch (e) {
+                        console.error("Failed to parse JSON from Gemini:", part.text);
+                    }
                 }
             }
         }
 
-        console.log(`[AI] Extracted Colors: ${colorsText}`);
-        return NextResponse.json({ success: true, colors: colorsText });
+        console.log(`[AI] Extracted Colorways:`, colorways);
+        return NextResponse.json({ success: true, colorways });
 
     } catch (error: any) {
         console.error("[API] Error extracting colors:", error);
