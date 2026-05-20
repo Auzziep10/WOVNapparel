@@ -317,8 +317,8 @@ class AppFlowState: ObservableObject {
     }
     
     func uploadIdentityData(selectedOccasion: String) {
-        guard let face = faceImage, let profile = profileImage, let body = bodyImage else { 
-            print("Notice: Missing photos. Skipping cloud upload and jumping to Try-On for demo purposes.")
+        guard let body = bodyImage else { 
+            print("Notice: Missing body photo. Skipping cloud upload and jumping to Try-On for demo purposes.")
             self.loadGarments(for: selectedOccasion)
             self.currentRoute = .tryOn(techPackId: selectedOccasion)
             return 
@@ -331,31 +331,31 @@ class AppFlowState: ObservableObject {
             do {
                 let userId = FirebaseAuth.Auth.auth().currentUser?.uid ?? mockSessionId
                 
-                self.uploadProgressText = "Analyzing Chromatic Profile..."
-                let contrastIndex = await ChromaticAnalyzer.analyzeContrast(image: face)
-                self.userMetrics["chromaticContrastIndex"] = contrastIndex
-                
-                if let skinLab = try? await SpectrophotometricSkinAnalyzer().extractSkinChromaticProfile(from: face) {
-                    self.userMetrics["skinL"] = Double(skinLab[0])
-                    self.userMetrics["skinA"] = Double(skinLab[1])
-                    self.userMetrics["skinB"] = Double(skinLab[2])
-                    print("Extracted User CIELAB Skin Profile: L: \(skinLab[0]), a: \(skinLab[1]), b: \(skinLab[2])")
+                if let face = faceImage {
+                    self.uploadProgressText = "Analyzing Chromatic Profile..."
+                    let contrastIndex = await ChromaticAnalyzer.analyzeContrast(image: face)
+                    self.userMetrics["chromaticContrastIndex"] = contrastIndex
+                    
+                    if let skinLab = try? await SpectrophotometricSkinAnalyzer().extractSkinChromaticProfile(from: face) {
+                        self.userMetrics["skinL"] = Double(skinLab[0])
+                        self.userMetrics["skinA"] = Double(skinLab[1])
+                        self.userMetrics["skinB"] = Double(skinLab[2])
+                        print("Extracted User CIELAB Skin Profile: L: \(skinLab[0]), a: \(skinLab[1]), b: \(skinLab[2])")
+                    }
                 }
                 
                 self.uploadProgressText = "Encrypting & Syncing Photos..."
                 
-                // Upload images concurrently to Firebase Storage
-                async let faceURL = FirebaseManager.shared.uploadImage(face, path: "users/\(userId)/identity/face.jpg")
-                async let profileURL = FirebaseManager.shared.uploadImage(profile, path: "users/\(userId)/identity/profile.jpg")
-                async let bodyURL = FirebaseManager.shared.uploadImage(body, path: "users/\(userId)/identity/body.jpg")
+                var fURL: URL? = nil
+                var pURL: URL? = nil
                 
-                let (fURL, pURL, bURL) = try await (faceURL, profileURL, bodyURL)
+                if let face = faceImage { fURL = try await FirebaseManager.shared.uploadImage(face, path: "users/\(userId)/identity/face.jpg") }
+                if let profile = profileImage { pURL = try await FirebaseManager.shared.uploadImage(profile, path: "users/\(userId)/identity/profile.jpg") }
+                let bURL = try await FirebaseManager.shared.uploadImage(body, path: "users/\(userId)/identity/body.jpg")
                 
-                let urls = [
-                    "face": fURL.absoluteString,
-                    "profile": pURL.absoluteString,
-                    "body": bURL.absoluteString
-                ]
+                var urls: [String: String] = ["body": bURL.absoluteString]
+                if let f = fURL { urls["face"] = f.absoluteString }
+                if let p = pURL { urls["profile"] = p.absoluteString }
                 
                 self.uploadProgressText = "Locking In Spatial Metrics..."
                 
