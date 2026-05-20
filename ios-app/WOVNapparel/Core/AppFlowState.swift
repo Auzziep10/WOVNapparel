@@ -414,7 +414,17 @@ class AppFlowState: ObservableObject {
                 }
                 
                 // Prepare base64 images
-                guard let body = self.bodyImage, let baseUserImg = body.resizeAndGetBase64() else {
+                var baseUserImg = ""
+                if let body = self.bodyImage, let encoded = body.resizeAndGetBase64() {
+                    baseUserImg = encoded
+                } else if let remoteBody = self.remoteBodyURL, let url = URL(string: remoteBody) {
+                    let (data, _) = try await URLSession.shared.data(from: url)
+                    if let img = UIImage(data: data), let encoded = img.resizeAndGetBase64() {
+                        baseUserImg = encoded
+                    }
+                }
+                
+                if baseUserImg.isEmpty {
                     print("Stylist Error: Missing body image for synthesis")
                     self.isSynthesizing = false
                     return
