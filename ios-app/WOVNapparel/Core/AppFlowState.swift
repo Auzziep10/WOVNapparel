@@ -441,8 +441,11 @@ class AppFlowState: ObservableObject {
                     // Artificial delay to let user see 100%
                     try await Task.sleep(nanoseconds: 300_000_000)
                     
-                    self.generatedImageURL = finalURL
-                    self.renderCache[cacheKey] = finalURL // Save to intelligent cache
+                    // DEMO MODE: We intentionally ignore the mockRenderUrl (the yellow tracksuit)
+                    // so the background remains your actual profile/body photo while we wait
+                    // for the real Vertex AI backend to be hooked up!
+                    // self.generatedImageURL = finalURL
+                    // self.renderCache[cacheKey] = finalURL // Save to intelligent cache
                 }
                 
                 self.isSynthesizing = false
