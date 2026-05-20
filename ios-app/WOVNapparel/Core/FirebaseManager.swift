@@ -104,11 +104,23 @@ class FirebaseManager {
             let data = doc.data()
             // We use the doc ID as the Garment ID so we can pass it to the synthesis backend
             let garmentId = doc.documentID
-            let type = data["category"] as? String ?? "unknown"
+            let type = data["garmentType"] as? String ?? "unknown"
             
-            // The Tech Pack Creator sends renderUrl
-            if let thumbnailUrl = data["renderUrl"] as? String {
-                garments.append(Garment(id: garmentId, type: type, thumbnail: thumbnailUrl))
+            var thumbnailUrl = data["renderUrl"] as? String
+            
+            // Fallback to the first extracted colorway image from the new Tech Pack Creator extraction flow
+            if (thumbnailUrl == nil || thumbnailUrl!.isEmpty) {
+                if let colorways = data["dominantColorways"] as? [[String: Any]],
+                   let firstColorway = colorways.first,
+                   let cwImage = firstColorway["image"] as? String,
+                   !cwImage.isEmpty {
+                    thumbnailUrl = cwImage
+                }
+            }
+            
+            // Only add garments that have a visual representation to prevent blank white bubbles
+            if let finalThumb = thumbnailUrl, !finalThumb.isEmpty {
+                garments.append(Garment(id: garmentId, type: type, thumbnail: finalThumb))
             }
         }
         return garments
