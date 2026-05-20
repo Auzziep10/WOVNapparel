@@ -422,7 +422,7 @@ class AppFlowState: ObservableObject {
                 
                 var garmentBase64 = ""
                 var selectedGarmentThumbnail: String? = nil
-                if let gId = garmentId, let g = self.garments.first(where: { $0.id == gId }) {
+                if let gId = garmentId, let g = self.recommendedGarments.first(where: { $0.id == gId }) {
                     selectedGarmentThumbnail = g.thumbnail
                 }
                 
