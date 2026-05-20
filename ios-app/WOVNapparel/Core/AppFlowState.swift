@@ -153,7 +153,13 @@ class AppFlowState: ObservableObject {
     func loadGarments(for occasion: String) {
         Task { @MainActor in
             do {
-                let fetched = try await FirebaseManager.shared.fetchGarments(for: occasion)
+                // Extract skin LAB if available
+                var userSkinLAB: [Double]? = nil
+                if let l = self.userMetrics["skinL"], let a = self.userMetrics["skinA"], let b = self.userMetrics["skinB"] {
+                    userSkinLAB = [l, a, b]
+                }
+                
+                let fetched = try await FirebaseManager.shared.fetchGarments(for: occasion, skinLAB: userSkinLAB)
                 if fetched.isEmpty {
                     // Fallback to mock garments if the database is completely empty for this occasion
                     self.recommendedGarments = [
@@ -328,6 +334,13 @@ class AppFlowState: ObservableObject {
                 self.uploadProgressText = "Analyzing Chromatic Profile..."
                 let contrastIndex = await ChromaticAnalyzer.analyzeContrast(image: face)
                 self.userMetrics["chromaticContrastIndex"] = contrastIndex
+                
+                if let skinLab = try? await SpectrophotometricSkinAnalyzer().extractSkinChromaticProfile(from: face) {
+                    self.userMetrics["skinL"] = Double(skinLab[0])
+                    self.userMetrics["skinA"] = Double(skinLab[1])
+                    self.userMetrics["skinB"] = Double(skinLab[2])
+                    print("Extracted User CIELAB Skin Profile: L: \(skinLab[0]), a: \(skinLab[1]), b: \(skinLab[2])")
+                }
                 
                 self.uploadProgressText = "Encrypting & Syncing Photos..."
                 

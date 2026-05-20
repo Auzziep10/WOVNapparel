@@ -90,8 +90,16 @@ class FirebaseManager {
         return renders
     }
     
-    /// Fetches available garments from Tech Packs based on occasion
-    func fetchGarments(for occasion: String) async throws -> [Garment] {
+    /// Calculates standard Euclidean color distance in CIELAB space
+    private func calculateDeltaE(lab1: [Double], lab2: [Double]) -> Double {
+        let dl = lab1[0] - lab2[0]
+        let da = lab1[1] - lab2[1]
+        let db = lab1[2] - lab2[2]
+        return sqrt(dl*dl + da*da + db*db)
+    }
+    
+    /// Fetches available garments from Tech Packs based on occasion and automatically filters them against user's skin LAB profile
+    func fetchGarments(for occasion: String, skinLAB: [Double]? = nil) async throws -> [Garment] {
         // We do a lowercase match to make it more robust, but Firestore requires exact matches or text search.
         // Assuming occasion is passed exactly as stored.
         let snapshot = try await db.collection("tech_packs")
@@ -110,7 +118,23 @@ class FirebaseManager {
             if let colorways = data["dominantColorways"] as? [[String: Any]] {
                 for (index, cw) in colorways.enumerated() {
                     if let cwImage = cw["image"] as? String, !cwImage.isEmpty {
-                        // Append EACH colorway as its own selectable garment in the Rolodex!
+                        
+                        // --- Personal Stylist Color Filtering Algorithm ---
+                        if let userSkin = skinLAB, let garmentLab = cw["lab"] as? [Double], garmentLab.count == 3 {
+                            let distance = calculateDeltaE(lab1: userSkin, lab2: garmentLab)
+                            
+                            // Rejection Rule: If Delta E < 25, the color is too close to the user's skin tone (naked/washed out effect).
+                            // We completely ignore this colorway!
+                            if distance < 25.0 {
+                                print("Stylist: Rejected colorway \(index) (Delta E: \(distance)) - Too close to skin tone!")
+                                continue
+                            } else {
+                                print("Stylist: Approved colorway \(index) (Delta E: \(distance))")
+                            }
+                        }
+                        // --------------------------------------------------
+                        
+                        // Append EACH approved colorway as its own selectable garment in the Rolodex!
                         // We append the index to the ID so SwiftUI ForEach doesn't crash from duplicate IDs.
                         garments.append(Garment(id: "\(garmentId)_cw_\(index)", type: type, thumbnail: cwImage))
                         addedColorways = true
