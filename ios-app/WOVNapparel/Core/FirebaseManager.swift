@@ -105,21 +105,24 @@ class FirebaseManager {
             let garmentId = doc.documentID
             let type = data["garmentType"] as? String ?? "unknown"
             
-            var thumbnailUrl = data["renderUrl"] as? String
-            
-            // Fallback to the first extracted colorway image from the new Tech Pack Creator extraction flow
-            if (thumbnailUrl == nil || thumbnailUrl!.isEmpty) {
-                if let colorways = data["dominantColorways"] as? [[String: Any]],
-                   let firstColorway = colorways.first,
-                   let cwImage = firstColorway["image"] as? String,
-                   !cwImage.isEmpty {
-                    thumbnailUrl = cwImage
+            // Extract all colorways from the new Tech Pack Creator extraction flow
+            var addedColorways = false
+            if let colorways = data["dominantColorways"] as? [[String: Any]] {
+                for (index, cw) in colorways.enumerated() {
+                    if let cwImage = cw["image"] as? String, !cwImage.isEmpty {
+                        // Append EACH colorway as its own selectable garment in the Rolodex!
+                        // We append the index to the ID so SwiftUI ForEach doesn't crash from duplicate IDs.
+                        garments.append(Garment(id: "\(garmentId)_cw_\(index)", type: type, thumbnail: cwImage))
+                        addedColorways = true
+                    }
                 }
             }
             
-            // Only add garments that have a visual representation to prevent blank white bubbles
-            if let finalThumb = thumbnailUrl, !finalThumb.isEmpty {
-                garments.append(Garment(id: garmentId, type: type, thumbnail: finalThumb))
+            // If the tech pack doesn't have individual colorway images, fallback to the main render
+            if !addedColorways {
+                if let thumbnailUrl = data["renderUrl"] as? String, !thumbnailUrl.isEmpty {
+                    garments.append(Garment(id: garmentId, type: type, thumbnail: thumbnailUrl))
+                }
             }
         }
         return garments
