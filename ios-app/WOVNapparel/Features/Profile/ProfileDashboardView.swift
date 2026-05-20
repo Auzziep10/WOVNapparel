@@ -58,7 +58,12 @@ struct ProfileDashboardView: View {
                                 .padding(.horizontal, 24)
                                 
                                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                                    ForEach(appState.userMetrics.sorted(by: <), id: \.key) { key, value in
+                                    let displayMetrics = appState.userMetrics.filter { 
+                                        !$0.key.lowercased().starts(with: "skin") && 
+                                        !$0.key.lowercased().starts(with: "chromatic") 
+                                    }.sorted(by: <)
+                                    
+                                    ForEach(displayMetrics, id: \.key) { key, value in
                                         VStack(spacing: 4) {
                                             Text(String(format: "%.1f\"", value))
                                                 .font(.system(size: 18, weight: .medium, design: .serif))
