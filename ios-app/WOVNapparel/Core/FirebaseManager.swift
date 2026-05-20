@@ -96,7 +96,6 @@ class FirebaseManager {
         // Assuming occasion is passed exactly as stored.
         let snapshot = try await db.collection("tech_packs")
             .whereField("occasion", isEqualTo: occasion)
-            .order(by: "importedAt", descending: true)
             .getDocuments()
             
         var garments: [Garment] = []

@@ -157,8 +157,8 @@ class AppFlowState: ObservableObject {
                 if fetched.isEmpty {
                     // Fallback to mock garments if the database is completely empty for this occasion
                     self.recommendedGarments = [
-                        Garment(id: "g_shirt_1", type: "top", thumbnail: "https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?w=200&h=200&fit=crop"),
-                        Garment(id: "g_pant_1", type: "bottom", thumbnail: "https://images.unsplash.com/photo-1624378439575-d1ead6cb4600?w=200&h=200&fit=crop")
+                        Garment(id: "g_shirt_1", type: "top", thumbnail: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&h=200&fit=crop"),
+                        Garment(id: "g_pant_1", type: "bottom", thumbnail: "https://images.unsplash.com/photo-1584865288642-42078afe6942?w=200&h=200&fit=crop")
                     ]
                 } else {
                     self.recommendedGarments = fetched
@@ -166,7 +166,7 @@ class AppFlowState: ObservableObject {
             } catch {
                 print("Failed to fetch garments: \(error)")
                 self.recommendedGarments = [
-                    Garment(id: "g_shirt_1", type: "top", thumbnail: "https://images.unsplash.com/photo-1596755094514-f87e32f85e2c?w=200&h=200&fit=crop")
+                    Garment(id: "g_shirt_1", type: "top", thumbnail: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&h=200&fit=crop")
                 ]
             }
         }
