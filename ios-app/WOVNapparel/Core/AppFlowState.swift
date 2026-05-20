@@ -406,59 +406,173 @@ class AppFlowState: ObservableObject {
         
         Task { @MainActor in
             do {
-                // Point to production Vercel deployment for TestFlight beta testing
-                guard let url = URL(string: "https://wovn-apparel.vercel.app/api/render-fit") else { return }
-                var request = URLRequest(url: url)
-                request.httpMethod = "POST"
-                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                
-                var payload: [String: Any] = ["userId": userId, "occasion": occasion]
-                if let gId = garmentId {
-                    payload["garmentId"] = gId
-                }
-                
-                request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-                
-                let (data, response) = try await URLSession.shared.data(for: request)
-                
-                progressTask.cancel() // Stop simulated progress
-                
-                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                    print("Synthesis API Error")
-                    isSynthesizing = false
+                guard let projectId = FirebaseApp.app()?.options.projectID,
+                      let apiKey = FirebaseApp.app()?.options.apiKey else {
+                    print("Stylist Error: Missing Firebase Config for Vertex AI")
+                    self.isSynthesizing = false
                     return
                 }
                 
-                if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                   let mockRenderUrlString = json["mockRenderUrl"] as? String,
-                   let finalURL = URL(string: mockRenderUrlString) {
-                    
-                    // Intentionally ignore the 'garments' array from the API response
-                    // so we don't overwrite the real Firebase garments in the Rolodex!
-                    
-                    synthesisProgress = 100 // Snap to 100%
-                    
-                    // Artificial delay to let user see 100%
-                    try await Task.sleep(nanoseconds: 300_000_000)
-                    
-                    // Check if the Vercel API returned a real Vertex AI image or a mock fallback
-                    if finalURL.absoluteString.contains("unsplash.com") {
-                        print("Stylist: Vertex AI failed on backend. Vercel returned mock fallback image.")
-                        // We intentionally ignore the Unsplash mock (yellow tracksuit)
-                        // so the background remains your actual profile photo!
-                    } else {
-                        print("Stylist: Real Vertex AI synthesis successful! Applying generated image.")
-                        self.generatedImageURL = finalURL
-                        self.renderCache[cacheKey] = finalURL // Save to intelligent cache
+                // Prepare base64 images
+                guard let body = self.bodyImage, let baseUserImg = body.resizeAndGetBase64() else {
+                    print("Stylist Error: Missing body image for synthesis")
+                    self.isSynthesizing = false
+                    return
+                }
+                
+                var garmentBase64 = ""
+                var selectedGarmentThumbnail: String? = nil
+                if let gId = garmentId, let g = self.garments.first(where: { $0.id == gId }) {
+                    selectedGarmentThumbnail = g.thumbnail
+                }
+                
+                if let thumbString = selectedGarmentThumbnail, let url = URL(string: thumbString) {
+                    let (data, _) = try await URLSession.shared.data(from: url)
+                    if let uiImage = UIImage(data: data) {
+                        garmentBase64 = uiImage.resizeAndGetBase64() ?? ""
                     }
                 }
                 
+                if garmentBase64.isEmpty {
+                    print("Stylist Error: Failed to load garment thumbnail for synthesis")
+                    self.isSynthesizing = false
+                    return
+                }
+                
+                let endpoint = "https://firebasevertexai.googleapis.com/v1beta/projects/\(projectId)/locations/us-central1/publishers/google/models/gemini-2.5-flash-image:generateContent"
+                
+                let prompt = """
+                TASK: High-Fidelity Virtual Try-On.
+                You are an expert AI fashion retoucher.
+                Image 1: A person.
+                Image 2: A target garment.
+                
+                CRITICAL CONSTRAINTS:
+                1. COMPLETELY REPLACE the user's current clothing with the target garment from Image 2.
+                2. DO NOT change the aspect ratio, framing, crop, or camera angle of Image 1. The output MUST be the exact same dimensions as Image 1.
+                3. Keep the exact background, face, hair, skin, pose, and composition of the person in Image 1 perfectly intact. DO NOT shift the person's location in the frame.
+                4. DO NOT just recolor the existing clothing. You MUST alter the garment shape, collar, sleeves, and details.
+                5. The fabric texture (e.g. cashmere, knit, cotton), drape, and color must exactly match Image 2.
+                6. Ensure realistic lighting, shadows, and blending.
+                7. EXTREMELY IMPORTANT: Adapt the garment's fit seamlessly to the subject's gender, body type, and natural curves. Ensure the fabric drapes naturally over the body contours and adjust sizing to match the human subject perfectly.
+                """
+                
+                let payload: [String: Any] = [
+                    "contents": [
+                        [
+                            "role": "user",
+                            "parts": [
+                                ["text": prompt],
+                                ["inlineData": ["data": baseUserImg, "mimeType": "image/jpeg"]],
+                                ["inlineData": ["data": garmentBase64, "mimeType": "image/jpeg"]]
+                            ]
+                        ]
+                    ],
+                    "generationConfig": [
+                        "responseModalities": ["IMAGE"]
+                    ]
+                ]
+                
+                guard let url = URL(string: endpoint) else { return }
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                request.setValue("fire/12.12.1", forHTTPHeaderField: "x-goog-api-client")
+                request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+                request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+                
+                let (data, response) = try await URLSession.shared.data(for: request)
+                progressTask.cancel() // Stop simulated progress
+                
+                guard let httpResponse = response as? HTTPURLResponse else { return }
+                
+                if httpResponse.statusCode == 429 {
+                    print("Stylist Error: Vertex AI Rate Limit Reached (429)")
+                    self.isSynthesizing = false
+                    return
+                }
+                
+                if httpResponse.statusCode != 200 {
+                    let errStr = String(data: data, encoding: .utf8) ?? "Unknown Error"
+                    print("Stylist Error: Vertex AI failed. Status: \(httpResponse.statusCode). Msg: \(errStr)")
+                    self.isSynthesizing = false
+                    return
+                }
+                
+                // Parse generated Base64 image
+                guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                      let candidates = json["candidates"] as? [[String: Any]],
+                      let firstCandidate = candidates.first,
+                      let content = firstCandidate["content"] as? [String: Any],
+                      let parts = content["parts"] as? [[String: Any]] else {
+                    print("Stylist Error: Could not parse Vertex AI response")
+                    self.isSynthesizing = false
+                    return
+                }
+                
+                var generatedBase64 = ""
+                for part in parts {
+                    if let inlineData = part["inlineData"] as? [String: Any],
+                       let baseData = inlineData["data"] as? String {
+                        generatedBase64 = baseData
+                        break
+                    }
+                }
+                
+                if generatedBase64.isEmpty {
+                    print("Stylist Error: No generated image found in response")
+                    self.isSynthesizing = false
+                    return
+                }
+                
+                // Convert to UIImage
+                guard let imgData = Data(base64Encoded: generatedBase64),
+                      let uiImage = UIImage(data: imgData) else {
+                    print("Stylist Error: Failed to convert base64 to UIImage")
+                    self.isSynthesizing = false
+                    return
+                }
+                
+                synthesisProgress = 100 // Snap to 100%
+                try await Task.sleep(nanoseconds: 300_000_000)
+                
+                // Upload the image to Firebase securely!
+                let gIdSafe = garmentId ?? "generated"
+                let uploadPath = "users/\(userId)/renders/\(gIdSafe)_\(Date().timeIntervalSince1970).jpg"
+                let finalURL = try await FirebaseManager.shared.uploadImage(uiImage, path: uploadPath)
+                
+                print("Stylist: Native Vertex AI synthesis successful! URL: \(finalURL.absoluteString)")
+                self.generatedImageURL = finalURL
+                self.renderCache[cacheKey] = finalURL // Save to intelligent cache
+                
                 self.isSynthesizing = false
             } catch {
-                print("Failed to trigger synthesis: \(error)")
+                print("Failed to trigger native synthesis: \(error)")
                 progressTask.cancel()
                 self.isSynthesizing = false
             }
         }
+    }
+}
+
+extension UIImage {
+    func resizeAndGetBase64() -> String? {
+        let maxDimension: CGFloat = 1024.0
+        var newSize = self.size
+        
+        if size.width > maxDimension || size.height > maxDimension {
+            let ratio = maxDimension / max(size.width, size.height)
+            newSize = CGSize(width: size.width * ratio, height: size.height * ratio)
+        }
+        
+        UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+        self.draw(in: CGRect(origin: .zero, size: newSize))
+        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        guard let finalImage = resizedImage,
+              let imageData = finalImage.jpegData(compressionQuality: 0.7) else { return nil }
+        
+        return imageData.base64EncodedString()
     }
 }
