@@ -420,16 +420,8 @@ class AppFlowState: ObservableObject {
                    let mockRenderUrlString = json["mockRenderUrl"] as? String,
                    let finalURL = URL(string: mockRenderUrlString) {
                     
-                    // Decode catalog if present
-                    if let garmentsDict = json["garments"] as? [[String: String]] {
-                        let parsedGarments = garmentsDict.compactMap { dict -> Garment? in
-                            guard let id = dict["id"], let type = dict["type"], let thumb = dict["thumbnail"] else { return nil }
-                            return Garment(id: id, type: type, thumbnail: thumb)
-                        }
-                        if !parsedGarments.isEmpty {
-                            self.recommendedGarments = parsedGarments
-                        }
-                    }
+                    // Intentionally ignore the 'garments' array from the API response
+                    // so we don't overwrite the real Firebase garments in the Rolodex!
                     
                     synthesisProgress = 100 // Snap to 100%
                     
