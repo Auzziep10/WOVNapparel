@@ -441,11 +441,16 @@ class AppFlowState: ObservableObject {
                     // Artificial delay to let user see 100%
                     try await Task.sleep(nanoseconds: 300_000_000)
                     
-                    // DEMO MODE: We intentionally ignore the mockRenderUrl (the yellow tracksuit)
-                    // so the background remains your actual profile/body photo while we wait
-                    // for the real Vertex AI backend to be hooked up!
-                    // self.generatedImageURL = finalURL
-                    // self.renderCache[cacheKey] = finalURL // Save to intelligent cache
+                    // Check if the Vercel API returned a real Vertex AI image or a mock fallback
+                    if finalURL.absoluteString.contains("unsplash.com") {
+                        print("Stylist: Vertex AI failed on backend. Vercel returned mock fallback image.")
+                        // We intentionally ignore the Unsplash mock (yellow tracksuit)
+                        // so the background remains your actual profile photo!
+                    } else {
+                        print("Stylist: Real Vertex AI synthesis successful! Applying generated image.")
+                        self.generatedImageURL = finalURL
+                        self.renderCache[cacheKey] = finalURL // Save to intelligent cache
+                    }
                 }
                 
                 self.isSynthesizing = false
