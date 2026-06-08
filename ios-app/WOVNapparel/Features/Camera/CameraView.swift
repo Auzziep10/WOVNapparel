@@ -24,7 +24,7 @@ struct CameraView: View {
     
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.black
             
             if let techImage = technicalImage {
                 // Processing View
@@ -63,7 +63,6 @@ struct CameraView: View {
             } else {
                 // Live AR Camera View
                 VisionCaptureView(isBodyFullyVisible: $isBodyFullyVisible, boundingBox: $boundingBox, joints: $joints, lines: $lines, capturedImage: $technicalImage, shouldCapture: $shouldCapture, shouldFlipCamera: $shouldFlipCamera)
-                    .ignoresSafeArea()
                 
                 // Premium Digital Mesh Overlay
                 ZStack {
@@ -116,7 +115,6 @@ struct CameraView: View {
                     }
                 }
                 .allowsHitTesting(false)
-                .ignoresSafeArea()
                 
                 // Countdown Overlay
                 if isBodyFullyVisible && countdown <= 2 && timer != nil {
@@ -164,6 +162,7 @@ struct CameraView: View {
                 }
             }
         }
+        .ignoresSafeArea()
         .preferredColorScheme(.dark)
         .onChange(of: technicalImage) { newImage in
             if newImage != nil {
