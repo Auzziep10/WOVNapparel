@@ -90,6 +90,17 @@ class FirebaseManager {
         return renders
     }
     
+    /// Saves a newly generated AI Try-On render URL to the user's collection in Firestore
+    func saveUserRender(userId: String, url: String, garmentId: String, occasion: String) async throws -> String {
+        let docRef = try await db.collection("users").document(userId).collection("renders").addDocument(data: [
+            "url": url,
+            "garmentId": garmentId,
+            "occasion": occasion,
+            "timestamp": FieldValue.serverTimestamp()
+        ])
+        return docRef.documentID
+    }
+    
     /// Calculates standard Euclidean color distance in CIELAB space
     private func calculateDeltaE(lab1: [Double], lab2: [Double]) -> Double {
         let dl = lab1[0] - lab2[0]

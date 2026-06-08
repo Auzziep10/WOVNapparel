@@ -5,6 +5,7 @@ struct ProfileDashboardView: View {
     @EnvironmentObject var appState: AppFlowState
     @State private var showARQuickLook = false
     @State private var showEditMenu = false
+    @State private var showAdjustSheet = false
     
     var body: some View {
         ZStack {
@@ -54,6 +55,18 @@ struct ProfileDashboardView: View {
                                         .tracking(1.5)
                                         .foregroundColor(Color(red: 161/255, green: 161/255, blue: 170/255))
                                     Spacer()
+                                    Button(action: {
+                                        showAdjustSheet = true
+                                    }) {
+                                        Text("ADJUST")
+                                            .font(.system(size: 9, weight: .bold))
+                                            .tracking(1.0)
+                                            .foregroundColor(.black)
+                                            .padding(.horizontal, 12)
+                                            .padding(.vertical, 6)
+                                            .background(Color(red: 228/255, green: 228/255, blue: 231/255))
+                                            .clipShape(Capsule())
+                                    }
                                 }
                                 .padding(.horizontal, 24)
                                 
@@ -64,8 +77,9 @@ struct ProfileDashboardView: View {
                                     }.sorted(by: <)
                                     
                                     ForEach(displayMetrics, id: \.key) { key, value in
+                                        let displayValue = key.lowercased().contains("cm") ? value / 2.54 : value
                                         VStack(spacing: 4) {
-                                            Text(String(format: "%.1f\"", value))
+                                            Text(String(format: "%.1f\"", displayValue))
                                                 .font(.system(size: 18, weight: .medium, design: .serif))
                                                 .foregroundColor(.black)
                                             Text(key.uppercased().replacingOccurrences(of: "CM", with: ""))
@@ -204,6 +218,9 @@ struct ProfileDashboardView: View {
                         ARQuickLookView(url: modelURL)
                     }
                 }
+                .sheet(isPresented: $showAdjustSheet) {
+                    AdjustmentSheet()
+                }
                 .confirmationDialog("Edit Profile", isPresented: $showEditMenu, titleVisibility: .visible) {
                     Button("Edit Personal Info") {
                         appState.currentRoute = .onboardingBasic
@@ -230,11 +247,13 @@ struct ProfileDashboardView: View {
                     }) {
                         Text("START TRY-ON")
                             .font(.system(size: 12, weight: .bold))
-                            .tracking(2)
+                            .tracking(2.5)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 20)
+                            .padding(.vertical, 18)
                             .background(Color(red: 24/255, green: 24/255, blue: 27/255))
+                            .clipShape(Capsule())
+                            .shadow(color: Color.black.opacity(0.12), radius: 10, y: 5)
                     }
                     .padding(.horizontal, 24)
                     .padding(.vertical, 20)
@@ -346,6 +365,117 @@ struct RemoteHeroPhotoThumbnail: View {
                 .font(.system(size: 10, weight: .bold))
                 .tracking(1.5)
                 .foregroundColor(Color(red: 161/255, green: 161/255, blue: 170/255))
+        }
+    }
+}
+
+struct AdjustmentSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var appState: AppFlowState
+    
+    @State private var chestInches: String = ""
+    @State private var waistInches: String = ""
+    @State private var hipsInches: String = ""
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color(red: 244/255, green: 244/255, blue: 245/255).ignoresSafeArea()
+                
+                VStack(spacing: 30) {
+                    Text("Fine-Tune Measurements")
+                        .font(.system(size: 28, weight: .regular, design: .serif))
+                        .foregroundColor(Color(red: 24/255, green: 24/255, blue: 27/255))
+                        .padding(.top, 20)
+                    
+                    Text("If the 2D spatial scan estimated your proportions slightly off, adjust them here in inches.")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(red: 113/255, green: 113/255, blue: 122/255))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                        .lineSpacing(4)
+                    
+                    VStack(spacing: 20) {
+                        MetricInputRow(label: "CHEST (IN)", value: $chestInches)
+                        MetricInputRow(label: "WAIST (IN)", value: $waistInches)
+                        MetricInputRow(label: "HIPS (IN)", value: $hipsInches)
+                    }
+                    .padding(.horizontal, 24)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        saveChanges()
+                    }) {
+                        Text("SAVE & UPDATE PROFILE")
+                            .font(.system(size: 12, weight: .semibold))
+                            .tracking(2.5)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(Color(red: 24/255, green: 24/255, blue: 27/255))
+                            .clipShape(Capsule())
+                            .shadow(color: Color.black.opacity(0.12), radius: 10, y: 5)
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 30)
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(.gray)
+                }
+            }
+            .onAppear {
+                let currentChest = appState.userMetrics["chestCm"] ?? 0
+                let currentWaist = appState.userMetrics["waistCm"] ?? 0
+                let currentHips = appState.userMetrics["hipsCm"] ?? 0
+                
+                chestInches = String(format: "%.1f", currentChest / 2.54)
+                waistInches = String(format: "%.1f", currentWaist / 2.54)
+                hipsInches = String(format: "%.1f", currentHips / 2.54)
+            }
+        }
+    }
+    
+    private func saveChanges() {
+        if let cVal = Double(chestInches), let wVal = Double(waistInches), let hVal = Double(hipsInches) {
+            var updated = appState.userMetrics
+            updated["chestCm"] = cVal * 2.54
+            updated["waistCm"] = wVal * 2.54
+            updated["hipsCm"] = hVal * 2.54
+            
+            appState.updateMetricsDirectly(updated)
+            dismiss()
+        }
+    }
+}
+
+struct MetricInputRow: View {
+    let label: String
+    @Binding var value: String
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label)
+                .font(.system(size: 10, weight: .semibold))
+                .tracking(1.5)
+                .foregroundColor(Color(red: 113/255, green: 113/255, blue: 122/255))
+                .padding(.leading, 8)
+            
+            TextField("", text: $value)
+                .keyboardType(.decimalPad)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .background(Color.white)
+                .clipShape(Capsule())
+                .overlay(Capsule().stroke(Color(red: 228/255, green: 228/255, blue: 231/255), lineWidth: 1))
+                .foregroundColor(Color(red: 24/255, green: 24/255, blue: 27/255))
+                .accentColor(Color(red: 24/255, green: 24/255, blue: 27/255))
         }
     }
 }

@@ -3,6 +3,7 @@ import SwiftUI
 struct CameraView: View {
     @EnvironmentObject var appState: AppFlowState
     @AppStorage("userHeightInput") private var userHeightInput: String = ""
+    @AppStorage("userBodyType") private var userBodyType: String = "Average"
     
     @State private var technicalImage: UIImage? = nil
     @State private var isProcessing = true
@@ -206,6 +207,69 @@ struct CameraView: View {
         countdown = 2
     }
     
+    static func parseHeightToCm(_ input: String) -> Double {
+        let clean = input.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if clean.isEmpty { return 170.0 }
+        
+        // 1. Check for feet/inches formats: e.g. 5'10", 5ft 10in, 5 10
+        if clean.contains("'") || clean.contains("ft") || clean.contains("feet") || clean.contains("foot") {
+            let components = clean.components(separatedBy: CharacterSet.decimalDigits.inverted)
+                .filter { !$0.isEmpty }
+            if components.count >= 2 {
+                if let feet = Double(components[0]), let inches = Double(components[1]) {
+                    return (feet * 12 + inches) * 2.54
+                }
+            } else if components.count == 1 {
+                if let feet = Double(components[0]) {
+                    return (feet * 12) * 2.54
+                }
+            }
+        }
+        
+        // 2. Check for explicit inches: e.g. 70", 70 in
+        if clean.contains("\"") || clean.contains("in") || clean.contains("inch") {
+            let components = clean.components(separatedBy: CharacterSet.decimalDigits.inverted)
+                .filter { !$0.isEmpty }
+            if let inches = Double(components.joined()) {
+                return inches * 2.54
+            }
+        }
+        
+        // 3. Check for explicit cm
+        if clean.contains("cm") || clean.contains("centimeter") {
+            let components = clean.components(separatedBy: CharacterSet.decimalDigits.inverted)
+                .filter { !$0.isEmpty }
+            if let cm = Double(components.joined()) {
+                return cm
+            }
+        }
+        
+        // 4. Try parsing space/dash separated numbers (e.g. "5 10", "5-10")
+        let separators = CharacterSet(charactersIn: " -:,")
+        let parts = clean.components(separatedBy: separators)
+            .map { $0.trimmingCharacters(in: CharacterSet.decimalDigits.inverted) }
+            .filter { !$0.isEmpty }
+        if parts.count >= 2 {
+            if let feet = Double(parts[0]), let inches = Double(parts[1]) {
+                if feet < 9 && inches < 12 {
+                    return (feet * 12 + inches) * 2.54
+                }
+            }
+        }
+        
+        // 5. Fallback digits-only heuristic
+        let digitsOnly = clean.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+        if let val = Double(digitsOnly) {
+            if val < 100 { // Assume inches if less than 100
+                return val * 2.54
+            } else {
+                return val
+            }
+        }
+        
+        return 170.0
+    }
+    
     private func processPseudo3DScan() {
         Task {
             try? await Task.sleep(nanoseconds: 1_000_000_000)
@@ -214,12 +278,12 @@ struct CameraView: View {
             
             try? await Task.sleep(nanoseconds: 1_000_000_000)
             
-            if let image = technicalImage?.cgImage {
-                let parsedHeight = Double(userHeightInput.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()) ?? 170.0
+            if let image = technicalImage {
+                let parsedHeight = CameraView.parseHeightToCm(userHeightInput)
                 
                 do {
                     // Extract exact measurements from this specific technical photo
-                    appState.userMetrics = try await sizingEngine.resolveUserSizing(userId: "current_user", actualHeightCm: parsedHeight, image: image)
+                    appState.userMetrics = try await sizingEngine.resolveUserSizing(userId: "current_user", actualHeightCm: parsedHeight, bodyType: userBodyType, image: image)
                 } catch {
                     print("Sizing engine failed: \(error)")
                 }

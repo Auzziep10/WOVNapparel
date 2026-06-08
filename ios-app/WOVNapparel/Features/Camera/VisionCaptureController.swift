@@ -244,15 +244,8 @@ extension VisionCaptureController: AVCaptureVideoDataOutputSampleBufferDelegate 
             
             // Helper to convert a normalized Vision point to exact SwiftUI screen coordinates
             func convertPoint(_ point: CGPoint) -> CGPoint {
-                var x = point.x
-                var y = 1.0 - point.y // Flip Y
-                
-                // If it's the front camera, the video connection is mirrored.
-                // Vision detects the skeleton on the mirrored frame.
-                // To display it correctly over the mirrored preview, we must mirror X.
-                if self.isFrontCamera {
-                    x = 1.0 - x
-                }
+                let x = point.x
+                let y = 1.0 - point.y // Flip Y
                 
                 return CGPoint(x: x * scaleX + offsetX, y: y * scaleY + offsetY)
             }

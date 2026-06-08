@@ -20,7 +20,7 @@
 		48BC8B9D4893751AD0286591 /* FirebaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46F548F2753F9AA38F148C30 /* FirebaseManager.swift */; };
 		4AC5CC6CE66DA5C483F3AC08 /* WOVNapparelApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95974DC5BA0476C873E8AC8 /* WOVNapparelApp.swift */; };
 		514654E067B1A9FB24AF617F /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E567356E5494035F3C1EA858 /* AuthenticationView.swift */; };
-		6A7B0C3EBFCCDA4E172C7F36 /* ChromaticAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CA739C27371C80240C7F858 /* ChromaticAnalyzer.swift */; };
+		6A7B0C3EBFCCDA4E172C7F36 /* Features/Profile/ChromaticAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CA739C27371C80240C7F858 /* Features/Profile/ChromaticAnalyzer.swift */; };
 		6D0AE4BD5FC87911501D683A /* ARQuickLookView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCCE955C5569D0E717EA370 /* ARQuickLookView.swift */; };
 		74274AA3CF953E22067CAFA2 /* BodyScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E238E9D541BDD3E39CADE29 /* BodyScannerView.swift */; };
 		74518C85D8180B67C845037A /* LiDARSizingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF445875DF6CCC6D9C8D09E7 /* LiDARSizingEngine.swift */; };
@@ -58,7 +58,7 @@
 		85BE6BF4ED35C44272358267 /* ARScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARScannerView.swift; sourceTree = "<group>"; };
 		85F5B849B35BAB8EFC222E48 /* OccasionDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OccasionDashboard.swift; sourceTree = "<group>"; };
 		91BA4DFF914AA7FC4D9668A7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		9CA739C27371C80240C7F858 /* ChromaticAnalyzer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Features/Profile/ChromaticAnalyzer.swift; sourceTree = "<group>"; };
+		9CA739C27371C80240C7F858 /* Features/Profile/ChromaticAnalyzer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Features/Profile/ChromaticAnalyzer.swift; sourceTree = "<group>"; };
 		A073E8E0508DF442274A6AFB /* GuidedFaceCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedFaceCaptureView.swift; sourceTree = "<group>"; };
 		A6254B8500BD45340491BFEA /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		A70908705E6BBEF247C7A4E1 /* SpatialSizingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpatialSizingEngine.swift; sourceTree = "<group>"; };
@@ -215,7 +215,7 @@
 		CFB1250D2AB38A0283309843 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
-				9CA739C27371C80240C7F858 /* ChromaticAnalyzer.swift */,
+				9CA739C27371C80240C7F858 /* Features/Profile/ChromaticAnalyzer.swift */,
 			);
 			name = Profile;
 			sourceTree = "<group>";
@@ -354,7 +354,7 @@
 				4AC5CC6CE66DA5C483F3AC08 /* WOVNapparelApp.swift in Sources */,
 				3FE5D467BB257BA0EA7FD4DB /* TryOnGalleryView.swift in Sources */,
 				D2FDEB365C9BB7A7AC464645 /* TryOnDetailView.swift in Sources */,
-				6A7B0C3EBFCCDA4E172C7F36 /* ChromaticAnalyzer.swift in Sources */,
+				6A7B0C3EBFCCDA4E172C7F36 /* Features/Profile/ChromaticAnalyzer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -486,7 +486,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = WOVNapparel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = MHZ56UTH96;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "WOVNapparel-Info.plist";
@@ -514,7 +514,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = WOVNapparel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_TEAM = MHZ56UTH96;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "WOVNapparel-Info.plist";

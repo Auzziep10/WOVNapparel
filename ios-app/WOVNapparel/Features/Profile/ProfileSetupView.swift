@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileSetupView: View {
     @EnvironmentObject var appState: AppFlowState
     @AppStorage("userHeightInput") private var userHeightInput: String = ""
+    @AppStorage("userBodyType") private var userBodyType: String = "Average"
     
     var body: some View {
         ZStack {
@@ -26,17 +27,20 @@ struct ProfileSetupView: View {
                 .padding(.top, 60)
                 
                 // Minimalist Input Fields
-                VStack(spacing: 20) {
+                VStack(spacing: 24) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("FULL NAME")
                             .font(.system(size: 10, weight: .semibold))
                             .tracking(1.5)
                             .foregroundColor(Color.zinc500)
+                            .padding(.leading, 8)
                         
                         TextField("", text: $appState.userName)
-                            .padding()
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
                             .background(Color.white)
-                            .border(Color.zinc200, width: 1)
+                            .clipShape(Capsule())
+                            .overlay(Capsule().stroke(Color.zinc200, lineWidth: 1))
                             .foregroundColor(Color.zinc900)
                             .accentColor(Color.zinc900)
                     }
@@ -46,20 +50,49 @@ struct ProfileSetupView: View {
                             .font(.system(size: 10, weight: .semibold))
                             .tracking(1.5)
                             .foregroundColor(Color.zinc500)
+                            .padding(.leading, 8)
                         
                         HStack(spacing: 0) {
                             TextField("e.g. 5'10\" or 178", text: $userHeightInput)
-                                .padding()
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 16)
                                 .foregroundColor(Color.zinc900)
                                 .accentColor(Color.zinc900)
                             
                             Text("in/cm")
                                 .font(.system(size: 12))
                                 .foregroundColor(Color.zinc400)
-                                .padding(.trailing, 16)
+                                .padding(.trailing, 20)
                         }
                         .background(Color.white)
-                        .border(Color.zinc200, width: 1)
+                        .clipShape(Capsule())
+                        .overlay(Capsule().stroke(Color.zinc200, lineWidth: 1))
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("BODY TYPE")
+                            .font(.system(size: 10, weight: .semibold))
+                            .tracking(1.5)
+                            .foregroundColor(Color.zinc500)
+                            .padding(.leading, 8)
+                        
+                        HStack(spacing: 10) {
+                            ForEach(["Slim", "Athletic", "Average", "Curvy"], id: \.self) { type in
+                                Button(action: {
+                                    userBodyType = type
+                                }) {
+                                    Text(type.uppercased())
+                                        .font(.system(size: 10, weight: .bold))
+                                        .tracking(1.0)
+                                        .foregroundColor(userBodyType == type ? .white : Color.zinc900)
+                                        .padding(.vertical, 12)
+                                        .frame(maxWidth: .infinity)
+                                        .background(userBodyType == type ? Color.zinc900 : Color.white)
+                                        .clipShape(Capsule())
+                                        .overlay(Capsule().stroke(userBodyType == type ? Color.zinc900 : Color.zinc200, lineWidth: 1))
+                                }
+                            }
+                        }
                     }
                 }
                 .padding(.horizontal, 24)
@@ -74,11 +107,13 @@ struct ProfileSetupView: View {
                 }) {
                     Text("NEXT: VISUAL IDENTITY")
                         .font(.system(size: 12, weight: .semibold))
-                        .tracking(2)
+                        .tracking(2.5)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 18)
                         .background(appState.userName.isEmpty || userHeightInput.isEmpty ? Color.zinc300 : Color.zinc900)
+                        .clipShape(Capsule())
+                        .shadow(color: (appState.userName.isEmpty || userHeightInput.isEmpty) ? .clear : Color.black.opacity(0.12), radius: 10, y: 5)
                 }
                 .disabled(appState.userName.isEmpty || userHeightInput.isEmpty)
                 .padding(.horizontal, 24)

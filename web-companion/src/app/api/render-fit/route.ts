@@ -6,8 +6,31 @@ import path from 'path';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { userId, occasion, garmentId } = body;
+    let body: any = {};
+    try {
+      body = await request.json();
+    } catch (e) {
+      // Body might be empty or invalid
+    }
+    const { occasion, garmentId } = body;
+    let userId = body.userId;
+
+    const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
+    const admin = getFirebaseAdmin();
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split('Bearer ')[1];
+      try {
+        const decodedToken = await admin.auth().verifyIdToken(token);
+        userId = decodedToken.uid;
+      } catch (authErr) {
+        console.error('[API AUTH ERROR] Failed to verify ID Token:', authErr);
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized: Invalid ID Token' },
+          { status: 401 }
+        );
+      }
+    }
 
     if (!userId || !occasion) {
       return NextResponse.json(
@@ -16,7 +39,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const admin = getFirebaseAdmin();
     let photos: any = {};
     let metrics: any = {};
     let db: any = null;
@@ -128,7 +150,7 @@ export async function POST(request: Request) {
         
         console.log(`[AI] Triggering Gemini 2.5 Flash native image generation. Colorway: ${recommendedColorway}...`);
         
-        const endpoint = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-2.5-flash-image:generateContent`;
+        const endpoint = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-3.1-flash-image:generateContent`;
         const payload = {
             contents: [
                 {

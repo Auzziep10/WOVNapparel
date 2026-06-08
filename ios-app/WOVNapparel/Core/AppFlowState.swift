@@ -37,6 +37,13 @@ struct Garment: Identifiable, Codable, Equatable {
     let id: String
     let type: String
     let thumbnail: String
+    
+    var baseId: String {
+        if let range = id.range(of: "_cw_") {
+            return String(id[..<range.lowerBound])
+        }
+        return id
+    }
 }
 
 struct SavedRender: Identifiable, Equatable {
@@ -183,6 +190,26 @@ class AppFlowState: ObservableObject {
         currentRoute = .profileReview
     }
     
+    func updateMetricsDirectly(_ newMetrics: [String: Double]) {
+        self.userMetrics = newMetrics
+        
+        Task { @MainActor in
+            do {
+                let userId = FirebaseAuth.Auth.auth().currentUser?.uid ?? mockSessionId
+                
+                var urls: [String: String] = [:]
+                if let body = remoteBodyURL { urls["body"] = body }
+                if let face = remoteFaceURL { urls["face"] = face }
+                if let profile = remoteProfileURL { urls["profile"] = profile }
+                
+                try await FirebaseManager.shared.saveMetrics(newMetrics, userId: userId, photoURLs: urls)
+                print("Successfully updated metrics in Firestore directly.")
+            } catch {
+                print("Failed to save updated metrics: \(error)")
+            }
+        }
+    }
+    
     func handleAppleSignInRequest(_ request: ASAuthorizationAppleIDRequest) {
         let nonce = randomNonceString()
         self.currentNonce = nonce
@@ -290,9 +317,9 @@ class AppFlowState: ObservableObject {
         let payload: [String: Any] = [
             "techPackId": techPackId,
             "userMetrics": [
-                "chestCm": (userMetrics["chest"] ?? 0) * 2.54, // converting inches to cm if needed, assuming userMetrics stores inches based on UI
-                "waistCm": (userMetrics["waist"] ?? 0) * 2.54,
-                "hipsCm": (userMetrics["hips"] ?? 0) * 2.54,
+                "chestCm": userMetrics["chestCm"] ?? (userMetrics["chest"] ?? 0) * 2.54,
+                "waistCm": userMetrics["waistCm"] ?? (userMetrics["waist"] ?? 0) * 2.54,
+                "hipsCm": userMetrics["hipsCm"] ?? (userMetrics["hips"] ?? 0) * 2.54,
                 "chromaticContrastIndex": 50 // arbitrary default
             ]
         ]
@@ -395,150 +422,86 @@ class AppFlowState: ObservableObject {
         synthesisProgress = 0
         selectedGarmentId = garmentId
         
-        // Simulate progress for AI generation
+        // Simulate progress for AI generation with realistic deceleration curve
         let progressTask = Task { @MainActor in
-            for i in 1...95 {
-                try? await Task.sleep(nanoseconds: 40_000_000) // Fast progress simulation
+            var i = 1
+            while i < 99 {
                 if Task.isCancelled { break }
                 synthesisProgress = i
+                
+                let sleepNs: UInt64
+                if i < 40 {
+                    sleepNs = 60_000_000   // 60ms
+                } else if i < 70 {
+                    sleepNs = 120_000_000  // 120ms
+                } else if i < 85 {
+                    sleepNs = 250_000_000  // 250ms
+                } else if i < 95 {
+                    sleepNs = 500_000_000  // 500ms
+                } else {
+                    sleepNs = 1_000_000_000 // 1s
+                }
+                
+                try? await Task.sleep(nanoseconds: sleepNs)
+                i += 1
             }
         }
         
         Task { @MainActor in
             do {
-                guard let projectId = FirebaseApp.app()?.options.projectID,
-                      let apiKey = FirebaseApp.app()?.options.apiKey else {
-                    print("Stylist Error: Missing Firebase Config for Vertex AI")
+                let gIdSafe = garmentId ?? "DEFAULT"
+                
+                var token = ""
+                if let currentUser = FirebaseAuth.Auth.auth().currentUser {
+                    token = try await currentUser.getIDToken()
+                }
+                
+                let endpoint = "https://wovn-apparel-companion.vercel.app/api/render-fit"
+                guard let url = URL(string: endpoint) else {
                     self.isSynthesizing = false
                     return
                 }
-                
-                // Prepare base64 images
-                var baseUserImg = ""
-                if let body = self.bodyImage, let encoded = body.resizeAndGetBase64() {
-                    baseUserImg = encoded
-                } else if let remoteBody = self.remoteBodyURL, let url = URL(string: remoteBody) {
-                    let (data, _) = try await URLSession.shared.data(from: url)
-                    if let img = UIImage(data: data), let encoded = img.resizeAndGetBase64() {
-                        baseUserImg = encoded
-                    }
-                }
-                
-                if baseUserImg.isEmpty {
-                    print("Stylist Error: Missing body image for synthesis")
-                    self.isSynthesizing = false
-                    return
-                }
-                
-                var garmentBase64 = ""
-                var selectedGarmentThumbnail: String? = nil
-                if let gId = garmentId, let g = self.recommendedGarments.first(where: { $0.id == gId }) {
-                    selectedGarmentThumbnail = g.thumbnail
-                }
-                
-                if let thumbString = selectedGarmentThumbnail, let url = URL(string: thumbString) {
-                    let (data, _) = try await URLSession.shared.data(from: url)
-                    if let uiImage = UIImage(data: data) {
-                        garmentBase64 = uiImage.resizeAndGetBase64() ?? ""
-                    }
-                }
-                
-                if garmentBase64.isEmpty {
-                    print("Stylist Error: Failed to load garment thumbnail for synthesis")
-                    self.isSynthesizing = false
-                    return
-                }
-                
-                let endpoint = "https://firebasevertexai.googleapis.com/v1beta/projects/\(projectId)/locations/us-central1/publishers/google/models/gemini-2.5-flash-image:generateContent"
-                
-                let prompt = """
-                TASK: High-Fidelity Virtual Try-On.
-                You are an expert AI fashion retoucher.
-                Image 1: A person.
-                Image 2: A target garment.
-                
-                CRITICAL CONSTRAINTS:
-                1. COMPLETELY REPLACE the user's current clothing with the target garment from Image 2.
-                2. DO NOT change the aspect ratio, framing, crop, or camera angle of Image 1. The output MUST be the exact same dimensions as Image 1.
-                3. Keep the exact background, face, hair, skin, pose, and composition of the person in Image 1 perfectly intact. DO NOT shift the person's location in the frame.
-                4. DO NOT just recolor the existing clothing. You MUST alter the garment shape, collar, sleeves, and details.
-                5. The fabric texture (e.g. cashmere, knit, cotton), drape, and color must exactly match Image 2.
-                6. Ensure realistic lighting, shadows, and blending.
-                7. EXTREMELY IMPORTANT: Adapt the garment's fit seamlessly to the subject's gender, body type, and natural curves. Ensure the fabric drapes naturally over the body contours and adjust sizing to match the human subject perfectly.
-                """
                 
                 let payload: [String: Any] = [
-                    "contents": [
-                        [
-                            "role": "user",
-                            "parts": [
-                                ["text": prompt],
-                                ["inlineData": ["data": baseUserImg, "mimeType": "image/jpeg"]],
-                                ["inlineData": ["data": garmentBase64, "mimeType": "image/jpeg"]]
-                            ]
-                        ]
-                    ],
-                    "generationConfig": [
-                        "responseModalities": ["IMAGE"]
-                    ]
+                    "userId": userId,
+                    "occasion": occasion,
+                    "garmentId": gIdSafe
                 ]
                 
-                guard let url = URL(string: endpoint) else { return }
                 var request = URLRequest(url: url)
                 request.httpMethod = "POST"
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                request.setValue("fire/12.12.1", forHTTPHeaderField: "x-goog-api-client")
-                request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
+                if !token.isEmpty {
+                    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+                }
                 request.httpBody = try JSONSerialization.data(withJSONObject: payload)
                 
                 let (data, response) = try await URLSession.shared.data(for: request)
                 progressTask.cancel() // Stop simulated progress
                 
-                guard let httpResponse = response as? HTTPURLResponse else { return }
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    self.isSynthesizing = false
+                    return
+                }
                 
                 if httpResponse.statusCode == 429 {
-                    print("Stylist Error: Vertex AI Rate Limit Reached (429)")
+                    print("Stylist Error: Rate Limit Reached (429)")
                     self.isSynthesizing = false
                     return
                 }
                 
                 if httpResponse.statusCode != 200 {
                     let errStr = String(data: data, encoding: .utf8) ?? "Unknown Error"
-                    print("Stylist Error: Vertex AI failed. Status: \(httpResponse.statusCode). Msg: \(errStr)")
+                    print("Stylist Error: Backend API failed. Status: \(httpResponse.statusCode). Msg: \(errStr)")
                     self.isSynthesizing = false
                     return
                 }
                 
-                // Parse generated Base64 image
                 guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                      let candidates = json["candidates"] as? [[String: Any]],
-                      let firstCandidate = candidates.first,
-                      let content = firstCandidate["content"] as? [String: Any],
-                      let parts = content["parts"] as? [[String: Any]] else {
-                    print("Stylist Error: Could not parse Vertex AI response")
-                    self.isSynthesizing = false
-                    return
-                }
-                
-                var generatedBase64 = ""
-                for part in parts {
-                    if let inlineData = part["inlineData"] as? [String: Any],
-                       let baseData = inlineData["data"] as? String {
-                        generatedBase64 = baseData
-                        break
-                    }
-                }
-                
-                if generatedBase64.isEmpty {
-                    print("Stylist Error: No generated image found in response")
-                    self.isSynthesizing = false
-                    return
-                }
-                
-                // Convert to UIImage
-                guard let imgData = Data(base64Encoded: generatedBase64),
-                      let uiImage = UIImage(data: imgData) else {
-                    print("Stylist Error: Failed to convert base64 to UIImage")
+                      let success = json["success"] as? Bool, success,
+                      let renderUrlString = json["mockRenderUrl"] as? String,
+                      let renderUrl = URL(string: renderUrlString) else {
+                    print("Stylist Error: Could not parse response JSON or mockRenderUrl missing")
                     self.isSynthesizing = false
                     return
                 }
@@ -546,18 +509,22 @@ class AppFlowState: ObservableObject {
                 synthesisProgress = 100 // Snap to 100%
                 try await Task.sleep(nanoseconds: 300_000_000)
                 
-                // Upload the image to Firebase securely!
-                let gIdSafe = garmentId ?? "generated"
-                let uploadPath = "users/\(userId)/renders/\(gIdSafe)_\(Date().timeIntervalSince1970).jpg"
-                let finalURL = try await FirebaseManager.shared.uploadImage(uiImage, path: uploadPath)
+                print("Stylist: Backend synthesis successful! URL: \(renderUrlString)")
+                self.generatedImageURL = renderUrl
+                self.renderCache[cacheKey] = renderUrl // Save to intelligent cache
                 
-                print("Stylist: Native Vertex AI synthesis successful! URL: \(finalURL.absoluteString)")
-                self.generatedImageURL = finalURL
-                self.renderCache[cacheKey] = finalURL // Save to intelligent cache
+                // Add to local list to update gallery
+                let newRender = SavedRender(
+                    id: UUID().uuidString,
+                    url: renderUrlString,
+                    garmentId: gIdSafe,
+                    occasion: occasion
+                )
+                self.savedTryOns.insert(newRender, at: 0)
                 
                 self.isSynthesizing = false
             } catch {
-                print("Failed to trigger native synthesis: \(error)")
+                print("Failed to trigger backend synthesis: \(error)")
                 progressTask.cancel()
                 self.isSynthesizing = false
             }
