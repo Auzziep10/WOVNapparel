@@ -165,14 +165,18 @@ extension VisionCaptureController: AVCaptureVideoDataOutputSampleBufferDelegate 
                 return
             }
             
-            self.analyzePose(pose)
+            let width = CVPixelBufferGetWidth(pixelBuffer)
+            let height = CVPixelBufferGetHeight(pixelBuffer)
+            let cameraAspect = CGFloat(width) / CGFloat(height)
+            
+            self.analyzePose(pose, cameraAspect: cameraAspect)
         }
         
         let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .up, options: [:])
         try? handler.perform([request])
     }
     
-    private func analyzePose(_ pose: VNHumanBodyPoseObservation) {
+    private func analyzePose(_ pose: VNHumanBodyPoseObservation, cameraAspect: CGFloat) {
         // We require specific joints to ensure the full body is in frame.
         // Reverted back to strict ankle requirement for accurate full-body metrics.
         let requiredJointNames: [VNHumanBodyPoseObservation.JointName] = [
@@ -218,8 +222,6 @@ extension VisionCaptureController: AVCaptureVideoDataOutputSampleBufferDelegate 
             
             // Vision points are 0..1 where (0,0) is bottom-left of the buffer.
             // Since we forced connection.videoOrientation = .portrait, the buffer is portrait.
-            // The aspect ratio of the .photo preset is 3:4 (portrait).
-            let cameraAspect: CGFloat = 3.0 / 4.0
             
             // Calculate screen dimensions to perform a perfect .resizeAspectFill mapping
             let screenBounds = UIScreen.main.bounds
