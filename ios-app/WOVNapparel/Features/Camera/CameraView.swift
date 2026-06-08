@@ -116,6 +116,7 @@ struct CameraView: View {
                     }
                 }
                 .allowsHitTesting(false)
+                .ignoresSafeArea()
                 
                 // Countdown Overlay
                 if isBodyFullyVisible && countdown <= 2 && timer != nil {
