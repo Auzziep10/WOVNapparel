@@ -309,7 +309,7 @@ class AppFlowState: ObservableObject {
             return "Recommended Size: M"
         }
         
-        let url = URL(string: "https://wovn-apparel-companion.vercel.app/api/match")!
+        let url = URL(string: "https://wovn-apparel.vercel.app/api/match")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -456,7 +456,7 @@ class AppFlowState: ObservableObject {
                     token = try await currentUser.getIDToken()
                 }
                 
-                let endpoint = "https://wovn-apparel-companion.vercel.app/api/render-fit"
+                let endpoint = "https://wovn-apparel.vercel.app/api/render-fit"
                 guard let url = URL(string: endpoint) else {
                     self.isSynthesizing = false
                     return
