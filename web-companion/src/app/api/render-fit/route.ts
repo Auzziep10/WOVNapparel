@@ -150,7 +150,7 @@ export async function POST(request: Request) {
         
         console.log(`[AI] Triggering Gemini 2.5 Flash native image generation. Colorway: ${recommendedColorway}...`);
         
-        const endpoint = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-3.1-flash-image:generateContent`;
+        const endpoint = `https://firebasevertexai.googleapis.com/v1beta/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-2.5-flash-image:generateContent`;
         const payload = {
             contents: [
                 {
@@ -163,8 +163,7 @@ export async function POST(request: Request) {
                 }
             ],
             generationConfig: {
-                responseModalities: ["IMAGE"],
-                // Removed imageConfig because gemini-2.5-flash standard REST API might not support it identically, it usually matches aspect ratio of input image natively when requested like this.
+                responseModalities: ["TEXT", "IMAGE"],
             }
         };
         
