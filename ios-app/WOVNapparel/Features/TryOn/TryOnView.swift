@@ -144,7 +144,7 @@ struct TryOnView: View {
                         Text("Synthesizing Style...")
                             .font(.system(size: 24, weight: .regular, design: .serif))
                         
-                        Text("Running AI garment mapping...")
+                        Text("Running garment mapping...")
                             .font(.system(size: 14))
                             .foregroundColor(.gray)
                     }
