@@ -27,7 +27,8 @@ class FirebaseManager {
     
     /// Uploads an identity image to Firebase Storage and returns the download URL.
     func uploadImage(_ image: UIImage, path: String) async throws -> URL {
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+        let normalizedImage = image.fixOrientation()
+        guard let imageData = normalizedImage.jpegData(compressionQuality: 0.8) else {
             throw NSError(domain: "FirebaseManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
         }
         
@@ -161,5 +162,20 @@ class FirebaseManager {
             }
         }
         return garments
+    }
+}
+
+extension UIImage {
+    func fixOrientation() -> UIImage {
+        if self.imageOrientation == .up {
+            return self
+        }
+        
+        UIGraphicsBeginImageContextWithOptions(self.size, false, self.scale)
+        self.draw(in: CGRect(x: 0, y: 0, width: self.size.width, height: self.size.height))
+        let normalizedImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return normalizedImage ?? self
     }
 }
