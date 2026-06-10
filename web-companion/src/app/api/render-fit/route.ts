@@ -97,41 +97,90 @@ export async function POST(request: Request) {
             throw new Error("Missing user body photo for virtual try-on.");
         }
         
-        // Query Firestore for the actual Tech Pack based on the Occasion
+        // Resolve specific tech pack and colorway if requested
         let garmentThumbnailUrl = mockGarments[0].thumbnail;
         let recommendedColorway = "Default";
         
+        let techPackId: string | null = null;
+        let colorwayIndex: number | null = null;
+        
+        if (garmentId) {
+            if (garmentId.includes('_cw_')) {
+                const parts = garmentId.split('_cw_');
+                techPackId = parts[0];
+                colorwayIndex = parseInt(parts[1], 10);
+            } else {
+                if (!garmentId.startsWith('g_')) {
+                    techPackId = garmentId;
+                }
+            }
+        }
+        
         if (db) {
-            const techPackSnapshot = await db.collection('tech_packs')
-                .where('occasion', '==', occasion)
-                .orderBy('importedAt', 'desc')
-                .limit(1)
-                .get();
+            let techPack: any = null;
             
-            if (!techPackSnapshot.empty) {
-                const techPack = techPackSnapshot.docs[0].data();
-                if (techPack.renderUrl) garmentThumbnailUrl = techPack.renderUrl;
-                
-                // Chromatic Selection Logic
-                const contrastIndex = metrics.chromaticContrastIndex || 50;
+            // 1. Fetch specific tech pack by ID if provided
+            if (techPackId) {
+                try {
+                    const doc = await db.collection('tech_packs').doc(techPackId).get();
+                    if (doc.exists) {
+                        techPack = doc.data();
+                    }
+                } catch (err) {
+                    console.warn(`[API WARNING] Failed to fetch tech pack ${techPackId}:`, err);
+                }
+            }
+            
+            // 2. Fall back to latest tech pack for the occasion if not found
+            if (!techPack && occasion) {
+                try {
+                    const techPackSnapshot = await db.collection('tech_packs')
+                        .where('occasion', '==', occasion)
+                        .orderBy('importedAt', 'desc')
+                        .limit(1)
+                        .get();
+                    
+                    if (!techPackSnapshot.empty) {
+                        techPack = techPackSnapshot.docs[0].data();
+                    }
+                } catch (err) {
+                    console.warn(`[API WARNING] Failed to query tech pack for occasion ${occasion}:`, err);
+                }
+            }
+            
+            // 3. Resolve the garment image and recommended colorway
+            if (techPack) {
                 const colorways = techPack.dominantColorways || [];
                 
-                if (colorways.length > 0) {
-                    if (contrastIndex > 60) {
-                        // High contrast -> Deep, saturated colors
-                        recommendedColorway = colorways[0]?.name || "Default";
-                    } else {
-                        // Low contrast -> Muted, lighter colors
-                        recommendedColorway = colorways.length > 1 ? colorways[1].name : colorways[0].name;
+                if (colorwayIndex !== null && colorwayIndex >= 0 && colorwayIndex < colorways.length) {
+                    // Explicit Selection: Use the selected colorway details
+                    const selectedCw = colorways[colorwayIndex];
+                    garmentThumbnailUrl = selectedCw.image || techPack.renderUrl || garmentThumbnailUrl;
+                    recommendedColorway = selectedCw.name || "Default";
+                    console.log(`[API] Resolved explicit colorway index ${colorwayIndex}: ${recommendedColorway}`);
+                } else {
+                    // Implicit Selection: Fall back to default render and run automatic recommendation logic
+                    garmentThumbnailUrl = techPack.renderUrl || garmentThumbnailUrl;
+                    const contrastIndex = metrics.chromaticContrastIndex || 50;
+                    
+                    if (colorways.length > 0) {
+                        if (contrastIndex > 60) {
+                            // High contrast -> Deep, saturated colors
+                            recommendedColorway = colorways[0]?.name || "Default";
+                        } else {
+                            // Low contrast -> Muted, lighter colors
+                            recommendedColorway = colorways.length > 1 ? colorways[1].name : colorways[0].name;
+                        }
                     }
+                    console.log(`[API] Resolved implicit colorway recommendation: ${recommendedColorway}`);
                 }
             } else {
-               const garment = mockGarments.find((g: any) => g.id === garmentId) || mockGarments[0];
-               garmentThumbnailUrl = garment.thumbnail;
+                const garment = mockGarments.find((g: any) => g.id === garmentId) || mockGarments[0];
+                garmentThumbnailUrl = garment.thumbnail;
             }
         } else {
-           const garment = mockGarments.find((g: any) => g.id === garmentId) || mockGarments[0];
-           garmentThumbnailUrl = garment.thumbnail;
+            const garment = mockGarments.find((g: any) => g.id === garmentId) || mockGarments[0];
+            garmentThumbnailUrl = garment.thumbnail;
         }
         
         // Helper to fetch and convert to Base64
