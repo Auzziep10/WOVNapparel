@@ -40,12 +40,13 @@ class FirebaseManager {
         return try await storageRef.downloadURL()
     }
     
-    /// Saves the spatial sizing metrics to Firestore
-    func saveMetrics(_ metrics: [String: Double], userId: String, photoURLs: [String: String]) async throws {
+    /// Saves the spatial sizing metrics and name to Firestore
+    func saveMetrics(_ metrics: [String: Double], userId: String, photoURLs: [String: String], name: String) async throws {
         let userRef = db.collection("users").document(userId)
         
         let data: [String: Any] = [
             "timestamp": FieldValue.serverTimestamp(),
+            "name": name,
             "measurements": metrics,
             "photos": photoURLs
         ]
@@ -53,17 +54,18 @@ class FirebaseManager {
         try await userRef.setData(data, merge: true)
     }
     
-    /// Fetches the user profile data including measurements and remote photo URLs
-    func fetchUserProfile(userId: String) async throws -> (measurements: [String: Double]?, photos: [String: String]?) {
+    /// Fetches the user profile data including name, measurements and remote photo URLs
+    func fetchUserProfile(userId: String) async throws -> (name: String?, measurements: [String: Double]?, photos: [String: String]?) {
         let snapshot = try await db.collection("users").document(userId).getDocument()
         guard let data = snapshot.data() else {
-            return (nil, nil)
+            return (nil, nil, nil)
         }
         
+        let name = data["name"] as? String
         let measurements = data["measurements"] as? [String: Double]
         let photos = data["photos"] as? [String: String]
         
-        return (measurements, photos)
+        return (name, measurements, photos)
     }
     
     /// Fetches the list of saved AI Try-On URLs for the user

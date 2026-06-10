@@ -126,10 +126,15 @@ class AppFlowState: ObservableObject {
     func fetchUserData(userId: String) {
         Task { @MainActor in
             do {
-                let (measurements, photos) = try await FirebaseManager.shared.fetchUserProfile(userId: userId)
+                let (name, measurements, photos) = try await FirebaseManager.shared.fetchUserProfile(userId: userId)
                 
-                let tryOns = try await FirebaseManager.shared.fetchUserRenders(userId: userId)
-                self.savedTryOns = tryOns
+                // Fetch past try-ons defensively in its own block so a failure doesn't block the profile load
+                do {
+                    let tryOns = try await FirebaseManager.shared.fetchUserRenders(userId: userId)
+                    self.savedTryOns = tryOns
+                } catch {
+                    print("Warning: Failed to fetch past try-ons: \(error)")
+                }
                 
                 let hasMeasurements = !(measurements?.isEmpty ?? true)
                 let hasPhotos = !(photos?.isEmpty ?? true)
@@ -137,6 +142,7 @@ class AppFlowState: ObservableObject {
                 // If they have BOTH photos and measurements, they've completed onboarding
                 if hasMeasurements && hasPhotos {
                     self.hasProfile = true
+                    if let name = name { self.userName = name }
                     if let measurements = measurements { self.userMetrics = measurements }
                     if let photos = photos {
                         self.remoteFaceURL = photos["face"]
@@ -202,7 +208,7 @@ class AppFlowState: ObservableObject {
                 if let face = remoteFaceURL { urls["face"] = face }
                 if let profile = remoteProfileURL { urls["profile"] = profile }
                 
-                try await FirebaseManager.shared.saveMetrics(newMetrics, userId: userId, photoURLs: urls)
+                try await FirebaseManager.shared.saveMetrics(newMetrics, userId: userId, photoURLs: urls, name: self.userName)
                 print("Successfully updated metrics in Firestore directly.")
             } catch {
                 print("Failed to save updated metrics: \(error)")
@@ -386,7 +392,7 @@ class AppFlowState: ObservableObject {
                 
                 self.uploadProgressText = "Locking In Spatial Metrics..."
                 
-                try await FirebaseManager.shared.saveMetrics(self.userMetrics, userId: userId, photoURLs: urls)
+                try await FirebaseManager.shared.saveMetrics(self.userMetrics, userId: userId, photoURLs: urls, name: self.userName)
                 
                 self.uploadProgressText = "Identity Synced Successfully."
                 try await Task.sleep(nanoseconds: 1_000_000_000)
