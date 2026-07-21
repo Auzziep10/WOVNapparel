@@ -44,6 +44,7 @@ export async function POST(request: Request) {
     const techPackData = {
       name: payload.name || 'Imported Garment',
       baseSize: payload.baseSize || 'M',
+      globalUnit: unit,
       matrices: {
         chest: processMatrix(payload.chestMatrix, unit),
         waist: processMatrix(payload.waistMatrix, unit),

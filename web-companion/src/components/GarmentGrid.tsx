@@ -6,6 +6,17 @@ import DeleteButton from './DeleteButton';
 export default function GarmentGrid({ techPacks }: { techPacks: any[] }) {
   const [selectedPack, setSelectedPack] = useState<any | null>(null);
 
+  const formatMeasurement = (cm: any, originalUnit: string = 'cm') => {
+    if (cm === undefined || cm === null || cm === '') return '--';
+    const num = typeof cm === 'string' ? parseFloat(cm) : cm;
+    if (isNaN(num)) return cm;
+    if (originalUnit === 'in') {
+      const inches = num / 2.54;
+      return `${parseFloat(inches.toFixed(2))}"`;
+    }
+    return `${parseFloat(num.toFixed(2))} cm`;
+  };
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -68,7 +79,7 @@ export default function GarmentGrid({ techPacks }: { techPacks: any[] }) {
                        <span className="text-[8px] bg-white/10 px-1 rounded text-zinc-400">GRADED</span>
                     )}
                   </span>
-                  <span className="text-zinc-100 font-mono text-sm">{pack.measurements?.bustCm || '--'}</span>
+                  <span className="text-zinc-100 font-mono text-sm">{formatMeasurement(pack.measurements?.bustCm, pack.globalUnit)}</span>
                 </div>
                 <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-3 flex flex-col justify-center">
                   <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-1 flex items-center gap-1">
@@ -77,7 +88,7 @@ export default function GarmentGrid({ techPacks }: { techPacks: any[] }) {
                        <span className="text-[8px] bg-white/10 px-1 rounded text-zinc-400">GRADED</span>
                     )}
                   </span>
-                  <span className="text-zinc-100 font-mono text-sm">{pack.measurements?.hemCm || '--'}</span>
+                  <span className="text-zinc-100 font-mono text-sm">{formatMeasurement(pack.measurements?.hemCm, pack.globalUnit)}</span>
                 </div>
               </div>
             </div>
@@ -156,7 +167,7 @@ export default function GarmentGrid({ techPacks }: { techPacks: any[] }) {
                                                 {Object.entries(data.grades).map(([size, val]: [string, any]) => (
                                                     <div key={size} className="flex items-center bg-black/40 rounded-lg overflow-hidden border border-white/5 text-[10px] font-mono">
                                                         <span className="bg-white/10 px-2 py-1 text-zinc-300 font-bold border-r border-white/5">{size}</span>
-                                                        <span className="px-2 py-1 text-white">{val}</span>
+                                                        <span className="px-2 py-1 text-white">{formatMeasurement(val, selectedPack.globalUnit)}</span>
                                                     </div>
                                                 ))}
                                             </div>
