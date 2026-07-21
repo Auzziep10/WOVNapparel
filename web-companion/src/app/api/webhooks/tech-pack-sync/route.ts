@@ -41,20 +41,25 @@ export async function POST(request: Request) {
 
     const unit = payload.globalUnit || 'cm';
 
+    const processedChest = processMatrix(payload.chestMatrix, unit);
+    const processedWaist = payload.waistMatrix && Object.keys(payload.waistMatrix.grades || {}).length > 0
+      ? processMatrix(payload.waistMatrix, unit)
+      : processedChest;
+
     const techPackData = {
       name: payload.name || 'Imported Garment',
       baseSize: payload.baseSize || 'M',
       globalUnit: unit,
       matrices: {
-        chest: processMatrix(payload.chestMatrix, unit),
-        waist: processMatrix(payload.waistMatrix, unit),
+        chest: processedChest,
+        waist: processedWaist,
         hem: processMatrix(payload.hemMatrix, unit),
         sleeve: processMatrix(payload.sleeveMatrix, unit)
       },
       // Keep legacy structure for backwards compatibility with the page UI
       measurements: {
-        bustCm: parseToCm(payload.chestMatrix?.base, unit),
-        waistCm: parseToCm(payload.waistMatrix?.base, unit),
+        bustCm: processedChest.base,
+        waistCm: processedWaist.base,
         hemCm: parseToCm(payload.hemMatrix?.base, unit),
         sleeveLengthCm: parseToCm(payload.sleeveMatrix?.base, unit)
       },
