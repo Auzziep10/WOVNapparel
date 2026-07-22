@@ -216,12 +216,10 @@ export async function POST(request: Request) {
             }
         };
         
-        const apiKey = process.env.FIREBASE_API_KEY || 'AIzaSyAsgI10Lo69FeuKd_B_lU04gJ4_nVRUKak';
         const aiResponse = await fetch(endpoint, {
             method: 'POST',
             headers: {
-                'x-goog-api-key': apiKey,
-                'x-goog-api-client': 'fire/12.12.1',
+                'Authorization': `Bearer ${token.token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(payload)
