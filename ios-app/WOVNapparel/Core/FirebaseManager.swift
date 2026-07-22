@@ -104,6 +104,48 @@ class FirebaseManager {
         return docRef.documentID
     }
     
+    /// Converts a hex color string (e.g. "#D0C9B6") to a CIELAB [Double] value
+    private func hexToLab(_ hex: String) -> [Double]? {
+        var cleanHex = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        if cleanHex.hasPrefix("#") {
+            cleanHex.remove(at: cleanHex.startIndex)
+        }
+        
+        guard cleanHex.count == 6 else { return nil }
+        
+        var rgbValue: UInt64 = 0
+        Scanner(string: cleanHex).scanHexInt64(&rgbValue)
+        
+        let r = Double((rgbValue & 0xFF0000) >> 16) / 255.0
+        let g = Double((rgbValue & 0x00FF00) >> 8) / 255.0
+        let b = Double(rgbValue & 0x0000FF) / 255.0
+        
+        // Convert to linear sRGB
+        let rL = r > 0.04045 ? pow((r + 0.055) / 1.055, 2.4) : r / 12.92
+        let gL = g > 0.04045 ? pow((g + 0.055) / 1.055, 2.4) : g / 12.92
+        let bL = b > 0.04045 ? pow((b + 0.055) / 1.055, 2.4) : b / 12.92
+        
+        // Convert to XYZ (D65 white point)
+        let x = rL * 0.4124 + gL * 0.3576 + bL * 0.1805
+        let y = rL * 0.2126 + gL * 0.7152 + bL * 0.0722
+        let z = rL * 0.0193 + gL * 0.1192 + bL * 0.9505
+        
+        // Normalize for D65
+        let xN = x / 0.95047
+        let yN = y / 1.00000
+        let zN = z / 1.08883
+        
+        let fx = xN > 0.008856 ? pow(xN, 1.0/3.0) : (7.787 * xN) + (16.0 / 116.0)
+        let fy = yN > 0.008856 ? pow(yN, 1.0/3.0) : (7.787 * yN) + (16.0 / 116.0)
+        let fz = zN > 0.008856 ? pow(zN, 1.0/3.0) : (7.787 * zN) + (16.0 / 116.0)
+        
+        let l = (116.0 * fy) - 16.0
+        let a = 500.0 * (fx - fy)
+        let labB = 200.0 * (fy - fz)
+        
+        return [l, a, labB]
+    }
+    
     /// Calculates standard Euclidean color distance in CIELAB space
     private func calculateDeltaE(lab1: [Double], lab2: [Double]) -> Double {
         let dl = lab1[0] - lab2[0]
@@ -134,16 +176,31 @@ class FirebaseManager {
                     if let cwImage = cw["image"] as? String, !cwImage.isEmpty {
                         
                         // --- Personal Stylist Color Filtering Algorithm ---
-                        if let userSkin = skinLAB, let garmentLab = cw["lab"] as? [Double], garmentLab.count == 3 {
-                            let distance = calculateDeltaE(lab1: userSkin, lab2: garmentLab)
+                        if let userSkin = skinLAB {
+                            var garmentLab: [Double]? = nil
                             
-                            // Rejection Rule: If Delta E < 25, the color is too close to the user's skin tone (naked/washed out effect).
-                            // We completely ignore this colorway!
-                            if distance < 25.0 {
-                                print("Stylist: Rejected colorway \(index) (Delta E: \(distance)) - Too close to skin tone!")
-                                continue
-                            } else {
-                                print("Stylist: Approved colorway \(index) (Delta E: \(distance))")
+                            // 1. Prefer precise calculation from Hex color if available
+                            if let hexString = cw["hex"] as? String, let calculatedLab = hexToLab(hexString) {
+                                garmentLab = calculatedLab
+                            } else if let labArray = cw["lab"] as? [Any] {
+                                // 2. Robust fallback parsing of the Firestore 'lab' array
+                                let parsed = labArray.compactMap { ($0 as? NSNumber)?.doubleValue ?? ($0 as? Double) ?? ($0 as? Int).map(Double.init) }
+                                if parsed.count == 3 {
+                                    garmentLab = parsed
+                                }
+                            }
+                            
+                            if let garmentLab = garmentLab {
+                                let distance = calculateDeltaE(lab1: userSkin, lab2: garmentLab)
+                                
+                                // Rejection Rule: If Delta E < 30.0, the color is too close to the user's skin tone (naked/washed out effect).
+                                // We completely ignore this colorway!
+                                if distance < 30.0 {
+                                    print("Stylist: Rejected colorway \(index) (\(cw["name"] as? String ?? "")) (Delta E: \(distance)) - Too close to skin tone!")
+                                    continue
+                                } else {
+                                    print("Stylist: Approved colorway \(index) (\(cw["name"] as? String ?? "")) (Delta E: \(distance))")
+                                }
                             }
                         }
                         // --------------------------------------------------
