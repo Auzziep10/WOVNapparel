@@ -21,10 +21,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Missing techPackId' }, { status: 400 });
     }
 
+    let cleanTechPackId = techPackId;
+    if (techPackId.includes('_cw_')) {
+        cleanTechPackId = techPackId.split('_cw_')[0];
+    }
+
     // Query live Firestore for the Tech Pack
     let techPackDoc;
     
-    if (techPackId === 'demo_tech_pack') {
+    if (cleanTechPackId === 'demo_tech_pack') {
         // Grab the most recently synced Tech Pack from Phase 6
         const latestQuery = await db.collection('tech_packs').orderBy('importedAt', 'desc').limit(1).get();
         if (latestQuery.empty) {
@@ -32,7 +37,7 @@ export async function POST(request: Request) {
         }
         techPackDoc = latestQuery.docs[0];
     } else {
-        techPackDoc = await db.collection('tech_packs').doc(techPackId).get();
+        techPackDoc = await db.collection('tech_packs').doc(cleanTechPackId).get();
     }
     
     if (!techPackDoc.exists) {

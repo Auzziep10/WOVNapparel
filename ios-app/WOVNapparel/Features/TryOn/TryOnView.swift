@@ -12,6 +12,7 @@ struct TryOnView: View {
     @State private var magnification: CGFloat = 1.0
     
     @State private var expandedGarmentId: String? = nil
+    @State private var recommendedSize: String = ""
     
     private var groupedGarments: [[Garment]] {
         var groups: [String: [Garment]] = [:]
@@ -310,6 +311,24 @@ struct TryOnView: View {
                 
                 Spacer()
                 
+                // Recommended Size Overlay Pill
+                if !recommendedSize.isEmpty {
+                    HStack {
+                        Image(systemName: "sparkles")
+                            .foregroundColor(.black)
+                        
+                        Text(recommendedSize)
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.black)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Capsule())
+                    .shadow(color: .black.opacity(0.15), radius: 10, y: 5)
+                    .padding(.bottom, 12)
+                }
+                
                 // Bottom Done Button
                 Button(action: {
                     appState.currentRoute = .profileReview
@@ -325,6 +344,18 @@ struct TryOnView: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 40)
+            }
+        }
+        .task(id: appState.selectedGarmentId) {
+            if let gId = appState.selectedGarmentId {
+                do {
+                    let size = try await appState.fetchSizeRecommendation(techPackId: gId)
+                    self.recommendedSize = size
+                } catch {
+                    self.recommendedSize = "Size: Unknown"
+                }
+            } else {
+                self.recommendedSize = ""
             }
         }
     }
