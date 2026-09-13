@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 export async function createTechPack(prevState: any, formData: FormData) {
   try {
     const name = formData.get('name') as string;
+    const occasion = (formData.get('occasion') as string) || 'Daily';
     const baseSize = formData.get('baseSize') as string;
     const bustCm = parseFloat(formData.get('bustCm') as string);
     const waistCm = parseFloat(formData.get('waistCm') as string);
@@ -20,6 +21,7 @@ export async function createTechPack(prevState: any, formData: FormData) {
 
     const techPackData = {
       name,
+      occasion,
       baseSize,
       measurements: {
         bustCm,

@@ -4,11 +4,21 @@ import SwiftUI
 struct OccasionSelectionView: View {
     @EnvironmentObject var appState: AppFlowState
     
-    let occasions = ["Corporate", "Wedding", "Night Out", "Gym", "Mixer"]
+    let occasions = [
+        "Daily",
+        "Work",
+        "Weekend",
+        "Travel",
+        "Corporate",
+        "Wedding",
+        "Night Out",
+        "Gym",
+        "Mixer"
+    ]
     
     // We use a custom scroll state to track the center element
     @State private var scrollOffset: CGFloat = 0
-    @State private var selectedIndex: Int = 2 // Default to center
+    @State private var selectedIndex: Int = 0 // Default to first (Daily)
     
     var body: some View {
         ZStack {

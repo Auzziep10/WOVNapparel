@@ -158,9 +158,15 @@ class FirebaseManager {
     func fetchGarments(for occasion: String, skinLAB: [Double]? = nil) async throws -> [Garment] {
         // We do a lowercase match to make it more robust, but Firestore requires exact matches or text search.
         // Assuming occasion is passed exactly as stored.
-        let snapshot = try await db.collection("tech_packs")
+        var snapshot = try await db.collection("tech_packs")
             .whereField("occasion", isEqualTo: occasion)
             .getDocuments()
+            
+        if snapshot.documents.isEmpty && occasion == "Daily" {
+            snapshot = try await db.collection("tech_packs")
+                .whereField("occasion", isEqualTo: "Everyday")
+                .getDocuments()
+        }
             
         var garments: [Garment] = []
         for doc in snapshot.documents {

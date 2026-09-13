@@ -27,10 +27,24 @@ export default function NewTechPackPage() {
 
         <form action={formAction} className="space-y-6 bg-neutral-900 p-8 rounded-2xl border border-neutral-800 shadow-2xl">
           
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-3 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-neutral-300">Garment Name</label>
               <input required name="name" type="text" placeholder="Heavyweight Box Tee" className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-neutral-300">Occasion</label>
+              <select required name="occasion" defaultValue="Daily" className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-4 py-3 text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                <option value="Daily">Daily</option>
+                <option value="Work">Work</option>
+                <option value="Weekend">Weekend</option>
+                <option value="Travel">Travel</option>
+                <option value="Corporate">Corporate</option>
+                <option value="Wedding">Wedding</option>
+                <option value="Night Out">Night Out</option>
+                <option value="Gym">Gym</option>
+                <option value="Mixer">Mixer</option>
+              </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-neutral-300">Base Size</label>

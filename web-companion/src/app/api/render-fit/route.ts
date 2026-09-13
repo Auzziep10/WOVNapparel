@@ -134,11 +134,19 @@ export async function POST(request: Request) {
             // 2. Fall back to latest tech pack for the occasion if not found
             if (!techPack && occasion) {
                 try {
-                    const techPackSnapshot = await db.collection('tech_packs')
+                    let techPackSnapshot = await db.collection('tech_packs')
                         .where('occasion', '==', occasion)
                         .orderBy('importedAt', 'desc')
                         .limit(1)
                         .get();
+                    
+                    if (techPackSnapshot.empty && occasion === 'Daily') {
+                        techPackSnapshot = await db.collection('tech_packs')
+                            .where('occasion', '==', 'Everyday')
+                            .orderBy('importedAt', 'desc')
+                            .limit(1)
+                            .get();
+                    }
                     
                     if (!techPackSnapshot.empty) {
                         techPack = techPackSnapshot.docs[0].data();
