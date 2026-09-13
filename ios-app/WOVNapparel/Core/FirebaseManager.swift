@@ -40,32 +40,36 @@ class FirebaseManager {
         return try await storageRef.downloadURL()
     }
     
-    /// Saves the spatial sizing metrics and name to Firestore
-    func saveMetrics(_ metrics: [String: Double], userId: String, photoURLs: [String: String], name: String) async throws {
+    /// Saves the spatial sizing metrics, name, and gender to Firestore
+    func saveMetrics(_ metrics: [String: Double], userId: String, photoURLs: [String: String], name: String, gender: String? = nil) async throws {
         let userRef = db.collection("users").document(userId)
         
-        let data: [String: Any] = [
+        var data: [String: Any] = [
             "timestamp": FieldValue.serverTimestamp(),
             "name": name,
             "measurements": metrics,
             "photos": photoURLs
         ]
+        if let g = gender {
+            data["gender"] = g
+        }
         
         try await userRef.setData(data, merge: true)
     }
     
-    /// Fetches the user profile data including name, measurements and remote photo URLs
-    func fetchUserProfile(userId: String) async throws -> (name: String?, measurements: [String: Double]?, photos: [String: String]?) {
+    /// Fetches the user profile data including name, measurements, remote photo URLs, and gender
+    func fetchUserProfile(userId: String) async throws -> (name: String?, measurements: [String: Double]?, photos: [String: String]?, gender: String?) {
         let snapshot = try await db.collection("users").document(userId).getDocument()
         guard let data = snapshot.data() else {
-            return (nil, nil, nil)
+            return (nil, nil, nil, nil)
         }
         
         let name = data["name"] as? String
         let measurements = data["measurements"] as? [String: Double]
         let photos = data["photos"] as? [String: String]
+        let gender = data["gender"] as? String
         
-        return (name, measurements, photos)
+        return (name, measurements, photos, gender)
     }
     
     /// Fetches the list of saved AI Try-On URLs for the user
@@ -154,8 +158,29 @@ class FirebaseManager {
         return sqrt(dl*dl + da*da + db*db)
     }
     
-    /// Fetches available garments from Tech Packs based on occasion and automatically filters them against user's skin LAB profile
-    func fetchGarments(for occasion: String, skinLAB: [Double]? = nil) async throws -> [Garment] {
+    /// Checks if a garment audience string matches the user's selected gender
+    private func matchesGender(garmentAudience: String, userGender: String) -> Bool {
+        let g = garmentAudience.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        let u = userGender.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        if u.isEmpty || u == "all" || u == "unisex" { return true }
+        if g.isEmpty || g == "unisex" || g == "all" { return true }
+        
+        let isUserMale = (u.contains("men") && !u.contains("women")) || (u.contains("male") && !u.contains("female"))
+        let isUserFemale = u.contains("women") || u.contains("female")
+        
+        let isGarmentMale = (g.contains("men") && !g.contains("women")) || (g.contains("male") && !g.contains("female"))
+        let isGarmentFemale = g.contains("women") || g.contains("female")
+        
+        if isUserMale {
+            return isGarmentMale
+        } else if isUserFemale {
+            return isGarmentFemale
+        }
+        return true
+    }
+    
+    /// Fetches available garments from Tech Packs based on occasion and automatically filters them against user's skin LAB profile and gender
+    func fetchGarments(for occasion: String, skinLAB: [Double]? = nil, gender: String? = nil) async throws -> [Garment] {
         // We do a lowercase match to make it more robust, but Firestore requires exact matches or text search.
         // Assuming occasion is passed exactly as stored.
         var snapshot = try await db.collection("tech_packs")
@@ -171,6 +196,16 @@ class FirebaseManager {
         var garments: [Garment] = []
         for doc in snapshot.documents {
             let data = doc.data()
+            
+            // Gender filtering: skip garment if audience/gender conflicts with user gender
+            if let userGender = gender, !userGender.isEmpty {
+                let garmentAudience = (data["gender"] as? String ?? data["audience"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                if !garmentAudience.isEmpty && !matchesGender(garmentAudience: garmentAudience, userGender: userGender) {
+                    print("Stylist: Filtered out \(doc.documentID) ('\(garmentAudience)') for user gender '\(userGender)'")
+                    continue
+                }
+            }
+            
             // We use the doc ID as the Garment ID so we can pass it to the synthesis backend
             let garmentId = doc.documentID
             let type = data["garmentType"] as? String ?? "unknown"

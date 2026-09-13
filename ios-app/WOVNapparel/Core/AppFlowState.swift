@@ -74,6 +74,7 @@ class AppFlowState: ObservableObject {
     @Published var hasProfile: Bool = false
     @Published var userName: String = ""
     @Published var userMetrics: [String: Double] = [:]
+    @Published var userGender: String = UserDefaults.standard.string(forKey: "userGender") ?? "Men"
     
     // Captured Identity Data
     @Published var faceImage: UIImage? = nil
@@ -126,7 +127,7 @@ class AppFlowState: ObservableObject {
     func fetchUserData(userId: String) {
         Task { @MainActor in
             do {
-                let (name, measurements, photos) = try await FirebaseManager.shared.fetchUserProfile(userId: userId)
+                let (name, measurements, photos, gender) = try await FirebaseManager.shared.fetchUserProfile(userId: userId)
                 
                 // Fetch past try-ons defensively in its own block so a failure doesn't block the profile load
                 do {
@@ -148,6 +149,10 @@ class AppFlowState: ObservableObject {
                         self.remoteFaceURL = photos["face"]
                         self.remoteProfileURL = photos["profile"]
                         self.remoteBodyURL = photos["body"]
+                    }
+                    if let gender = gender {
+                        self.userGender = gender
+                        UserDefaults.standard.set(gender, forKey: "userGender")
                     }
                     self.currentRoute = .profileReview
                 } else {
@@ -172,7 +177,7 @@ class AppFlowState: ObservableObject {
                     userSkinLAB = [l, a, b]
                 }
                 
-                let fetched = try await FirebaseManager.shared.fetchGarments(for: occasion, skinLAB: userSkinLAB)
+                let fetched = try await FirebaseManager.shared.fetchGarments(for: occasion, skinLAB: userSkinLAB, gender: self.userGender)
                 if fetched.isEmpty {
                     // Fallback to mock garments if the database is completely empty for this occasion
                     self.recommendedGarments = [
@@ -208,7 +213,7 @@ class AppFlowState: ObservableObject {
                 if let face = remoteFaceURL { urls["face"] = face }
                 if let profile = remoteProfileURL { urls["profile"] = profile }
                 
-                try await FirebaseManager.shared.saveMetrics(newMetrics, userId: userId, photoURLs: urls, name: self.userName)
+                try await FirebaseManager.shared.saveMetrics(newMetrics, userId: userId, photoURLs: urls, name: self.userName, gender: self.userGender)
                 print("Successfully updated metrics in Firestore directly.")
             } catch {
                 print("Failed to save updated metrics: \(error)")
@@ -392,7 +397,7 @@ class AppFlowState: ObservableObject {
                 
                 self.uploadProgressText = "Locking In Spatial Metrics..."
                 
-                try await FirebaseManager.shared.saveMetrics(self.userMetrics, userId: userId, photoURLs: urls, name: self.userName)
+                try await FirebaseManager.shared.saveMetrics(self.userMetrics, userId: userId, photoURLs: urls, name: self.userName, gender: self.userGender)
                 
                 self.uploadProgressText = "Identity Synced Successfully."
                 try await Task.sleep(nanoseconds: 1_000_000_000)
@@ -471,7 +476,8 @@ class AppFlowState: ObservableObject {
                 let payload: [String: Any] = [
                     "userId": userId,
                     "occasion": occasion,
-                    "garmentId": gIdSafe
+                    "garmentId": gIdSafe,
+                    "gender": self.userGender
                 ]
                 
                 var request = URLRequest(url: url)

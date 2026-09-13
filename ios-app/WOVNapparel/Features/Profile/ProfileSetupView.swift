@@ -4,17 +4,18 @@ struct ProfileSetupView: View {
     @EnvironmentObject var appState: AppFlowState
     @AppStorage("userHeightInput") private var userHeightInput: String = ""
     @AppStorage("userBodyType") private var userBodyType: String = "Average"
+    @AppStorage("userGender") private var userGender: String = "Men"
     
     var body: some View {
         ZStack {
             // Minimalist Garment Catalog Background (#f4f4f5)
             Color(red: 244/255, green: 244/255, blue: 245/255).ignoresSafeArea()
             
-            VStack(spacing: 40) {
-                VStack(spacing: 16) {
+            VStack(spacing: 28) {
+                VStack(spacing: 14) {
                     Text("WOVN Profile")
                         // Playfair Display aesthetic
-                        .font(.system(size: 48, weight: .regular, design: .serif))
+                        .font(.system(size: 44, weight: .regular, design: .serif))
                         .foregroundColor(Color.zinc900)
                     
                     Text("Capture your identity and spatial body metrics to generate hyper-realistic virtual try-ons.")
@@ -24,10 +25,10 @@ struct ProfileSetupView: View {
                         .padding(.horizontal, 40)
                         .lineSpacing(4)
                 }
-                .padding(.top, 60)
+                .padding(.top, 40)
                 
                 // Minimalist Input Fields
-                VStack(spacing: 24) {
+                VStack(spacing: 20) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("FULL NAME")
                             .font(.system(size: 10, weight: .semibold))
@@ -70,6 +71,33 @@ struct ProfileSetupView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 8) {
+                        Text("GENDER")
+                            .font(.system(size: 10, weight: .semibold))
+                            .tracking(1.5)
+                            .foregroundColor(Color.zinc500)
+                            .padding(.leading, 8)
+                        
+                        HStack(spacing: 10) {
+                            ForEach(["Men", "Women", "Unisex"], id: \.self) { gender in
+                                Button(action: {
+                                    userGender = gender
+                                    appState.userGender = gender
+                                }) {
+                                    Text(gender.uppercased())
+                                        .font(.system(size: 10, weight: .bold))
+                                        .tracking(1.0)
+                                        .foregroundColor(userGender == gender ? .white : Color.zinc900)
+                                        .padding(.vertical, 12)
+                                        .frame(maxWidth: .infinity)
+                                        .background(userGender == gender ? Color.zinc900 : Color.white)
+                                        .clipShape(Capsule())
+                                        .overlay(Capsule().stroke(userGender == gender ? Color.zinc900 : Color.zinc200, lineWidth: 1))
+                                }
+                            }
+                        }
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
                         Text("BODY TYPE")
                             .font(.system(size: 10, weight: .semibold))
                             .tracking(1.5)
@@ -101,6 +129,7 @@ struct ProfileSetupView: View {
                 
                 // Minimalist Button
                 Button(action: {
+                    appState.userGender = userGender
                     withAnimation {
                         appState.currentRoute = .onboardingPhotos
                     }
@@ -121,6 +150,13 @@ struct ProfileSetupView: View {
             }
         }
         .preferredColorScheme(.light)
+        .onAppear {
+            if !appState.userGender.isEmpty {
+                userGender = appState.userGender
+            } else {
+                appState.userGender = userGender
+            }
+        }
     }
 }
 

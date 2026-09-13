@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     } catch (e) {
       // Body might be empty or invalid
     }
-    const { occasion, garmentId } = body;
+    const { occasion, garmentId, gender: requestedGender } = body;
     let userId = body.userId;
 
     const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
@@ -41,6 +41,7 @@ export async function POST(request: Request) {
 
     let photos: any = {};
     let metrics: any = {};
+    let userGender: string | null = requestedGender || null;
     let db: any = null;
     
     try {
@@ -52,6 +53,9 @@ export async function POST(request: Request) {
         const userData = userDoc.data()!;
         photos = userData.photos || {};
         metrics = userData.measurements || {};
+        if (!userGender && userData.gender) {
+          userGender = userData.gender;
+        }
       } else {
         console.warn(`[API WARNING] User ${userId} not found in Firebase. Proceeding with default values for demo.`);
       }
@@ -137,19 +141,33 @@ export async function POST(request: Request) {
                     let techPackSnapshot = await db.collection('tech_packs')
                         .where('occasion', '==', occasion)
                         .orderBy('importedAt', 'desc')
-                        .limit(1)
+                        .limit(10)
                         .get();
                     
                     if (techPackSnapshot.empty && occasion === 'Daily') {
                         techPackSnapshot = await db.collection('tech_packs')
                             .where('occasion', '==', 'Everyday')
                             .orderBy('importedAt', 'desc')
-                            .limit(1)
+                            .limit(10)
                             .get();
                     }
                     
                     if (!techPackSnapshot.empty) {
-                        techPack = techPackSnapshot.docs[0].data();
+                        if (userGender) {
+                            const normalizedUser = userGender.trim().toLowerCase();
+                            // Filter for tech pack matching user gender or tagged unisex/universal
+                            const matched = techPackSnapshot.docs.find((d: any) => {
+                                const data = d.data();
+                                const g = (data.gender || data.audience || 'Unisex').trim().toLowerCase();
+                                if (g === 'unisex' || g === 'universal' || g === 'all' || !g) return true;
+                                if ((normalizedUser === 'men' || normalizedUser === 'male') && (g === 'men' || g === 'mens' || g === 'male')) return true;
+                                if ((normalizedUser === 'women' || normalizedUser === 'female') && (g === 'women' || g === 'womens' || g === 'female')) return true;
+                                return false;
+                            });
+                            techPack = matched ? matched.data() : techPackSnapshot.docs[0].data();
+                        } else {
+                            techPack = techPackSnapshot.docs[0].data();
+                        }
                     }
                 } catch (err) {
                     console.warn(`[API WARNING] Failed to query tech pack for occasion ${occasion}:`, err);
@@ -213,7 +231,7 @@ export async function POST(request: Request) {
                 {
                     role: "user",
                     parts: [
-                        { text: `TASK: High-Fidelity Virtual Try-On.\nYou are an expert AI fashion retoucher.\nImage 1: A person.\nImage 2: A target garment.\n\nCRITICAL CONSTRAINTS:\n1. COMPLETELY REPLACE the user's current clothing with the target garment from Image 2.\n2. DO NOT change the aspect ratio, framing, crop, or camera angle of Image 1. The output MUST be the exact same dimensions as Image 1.\n3. Keep the exact background, face, hair, skin, pose, and composition of the person in Image 1 perfectly intact. DO NOT shift the person's location in the frame.\n4. DO NOT just recolor the existing clothing. You MUST alter the garment shape, collar, sleeves, and details.\n5. The fabric texture (e.g. cashmere, knit, cotton), drape, and color must exactly match Image 2.\n6. Ensure realistic lighting, shadows, and blending.\n7. EXTREMELY IMPORTANT: Adapt the garment's fit seamlessly to the subject's gender, body type, and natural curves.\n8. CHROMATIC REQUIREMENT: The final garment color MUST exactly match ${recommendedColorway}. Adapt lighting and shadows to make this color look natural.\n9. NO ADDED ACCESSORIES: DO NOT add any sunglasses, regular glasses, hats, or jewelry to the person's face or body unless they are already wearing them in Image 1. Keep their face and eyes completely unchanged.` },
+                        { text: `TASK: High-Fidelity Virtual Try-On.\nYou are an expert AI fashion retoucher.\nImage 1: A person.\nImage 2: A target garment.\n\nCRITICAL CONSTRAINTS:\n1. COMPLETELY REPLACE the user's current clothing with the target garment from Image 2.\n2. DO NOT change the aspect ratio, framing, crop, or camera angle of Image 1. The output MUST be the exact same dimensions as Image 1.\n3. Keep the exact background, face, hair, skin, pose, and composition of the person in Image 1 perfectly intact. DO NOT shift the person's location in the frame.\n4. DO NOT just recolor the existing clothing. You MUST alter the garment shape, collar, sleeves, and details.\n5. The fabric texture (e.g. cashmere, knit, cotton), drape, and color must exactly match Image 2.\n6. Ensure realistic lighting, shadows, and blending.\n7. EXTREMELY IMPORTANT: Adapt the garment's fit seamlessly to the subject's gender (${userGender || 'appropriate to the garment'}), body type, and natural curves.\n8. CHROMATIC REQUIREMENT: The final garment color MUST exactly match ${recommendedColorway}. Adapt lighting and shadows to make this color look natural.\n9. NO ADDED ACCESSORIES: DO NOT add any sunglasses, regular glasses, hats, or jewelry to the person's face or body unless they are already wearing them in Image 1. Keep their face and eyes completely unchanged.` },
                         { inlineData: { data: userImg.data, mimeType: userImg.mimeType } },
                         { inlineData: { data: garmentImg.data, mimeType: garmentImg.mimeType } }
                     ]
