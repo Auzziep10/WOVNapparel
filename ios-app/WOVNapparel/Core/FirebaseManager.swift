@@ -179,8 +179,8 @@ class FirebaseManager {
         return true
     }
     
-    /// Fetches available garments from Tech Packs based on occasion and automatically filters them against user's skin LAB profile and gender
-    func fetchGarments(for occasion: String, skinLAB: [Double]? = nil, gender: String? = nil) async throws -> [Garment] {
+    /// Fetches available garments from Tech Packs based on occasion and automatically filters & ranks them to the top 5 color options matching user's skin tone to hair color ratio
+    func fetchGarments(for occasion: String, skinLAB: [Double]? = nil, contrastIndex: Double? = nil, gender: String? = nil) async throws -> [Garment] {
         // We do a lowercase match to make it more robust, but Firestore requires exact matches or text search.
         // Assuming occasion is passed exactly as stored.
         var snapshot = try await db.collection("tech_packs")
@@ -210,47 +210,76 @@ class FirebaseManager {
             let garmentId = doc.documentID
             let type = data["garmentType"] as? String ?? "unknown"
             
-            // Extract all colorways from the new Tech Pack Creator extraction flow
+            // Extract all colorways from the Tech Pack and rank against skin-to-hair ratio
             var addedColorways = false
-            if let colorways = data["dominantColorways"] as? [[String: Any]] {
+            if let colorways = data["dominantColorways"] as? [[String: Any]], !colorways.isEmpty {
+                var candidateColorways: [(index: Int, garment: Garment, score: Double)] = []
+                
                 for (index, cw) in colorways.enumerated() {
-                    if let cwImage = cw["image"] as? String, !cwImage.isEmpty {
-                        
-                        // --- Personal Stylist Color Filtering Algorithm ---
-                        if let userSkin = skinLAB {
-                            var garmentLab: [Double]? = nil
-                            
-                            // 1. Prefer precise calculation from Hex color if available
-                            if let hexString = cw["hex"] as? String, let calculatedLab = hexToLab(hexString) {
-                                garmentLab = calculatedLab
-                            } else if let labArray = cw["lab"] as? [Any] {
-                                // 2. Robust fallback parsing of the Firestore 'lab' array
-                                let parsed = labArray.compactMap { ($0 as? NSNumber)?.doubleValue ?? ($0 as? Double) ?? ($0 as? Int).map(Double.init) }
-                                if parsed.count == 3 {
-                                    garmentLab = parsed
-                                }
-                            }
-                            
-                            if let garmentLab = garmentLab {
-                                let distance = calculateDeltaE(lab1: userSkin, lab2: garmentLab)
-                                
-                                // Rejection Rule: If Delta E < 30.0, the color is too close to the user's skin tone (naked/washed out effect).
-                                // We completely ignore this colorway!
-                                if distance < 30.0 {
-                                    print("Stylist: Rejected colorway \(index) (\(cw["name"] as? String ?? "")) (Delta E: \(distance)) - Too close to skin tone!")
-                                    continue
-                                } else {
-                                    print("Stylist: Approved colorway \(index) (\(cw["name"] as? String ?? "")) (Delta E: \(distance))")
-                                }
-                            }
+                    guard let cwImage = cw["image"] as? String, !cwImage.isEmpty else { continue }
+                    
+                    var garmentLab: [Double]? = nil
+                    // 1. Prefer precise calculation from Hex color if available
+                    if let hexString = cw["hex"] as? String, let calculatedLab = hexToLab(hexString) {
+                        garmentLab = calculatedLab
+                    } else if let labArray = cw["lab"] as? [Any] {
+                        // 2. Robust fallback parsing of the Firestore 'lab' array
+                        let parsed = labArray.compactMap { ($0 as? NSNumber)?.doubleValue ?? ($0 as? Double) ?? ($0 as? Int).map(Double.init) }
+                        if parsed.count == 3 {
+                            garmentLab = parsed
                         }
-                        // --------------------------------------------------
-                        
-                        // Append EACH approved colorway as its own selectable garment in the Rolodex!
-                        // We append the index to the ID so SwiftUI ForEach doesn't crash from duplicate IDs.
-                        garments.append(Garment(id: "\(garmentId)_cw_\(index)", type: type, thumbnail: cwImage))
-                        addedColorways = true
                     }
+                    
+                    var score: Double = 50.0
+                    
+                    // --- Personal Stylist Color Matching Algorithm ---
+                    if let userSkin = skinLAB, let gLab = garmentLab {
+                        let distance = calculateDeltaE(lab1: userSkin, lab2: gLab)
+                        
+                        // Rejection Rule: If Delta E < 22.0, the color is too close to the user's skin tone (naked/washed out effect).
+                        if distance < 22.0 {
+                            print("Stylist: Rejected colorway \(index) (\(cw["name"] as? String ?? "")) (Delta E: \(distance)) - Too close to skin tone!")
+                            continue
+                        }
+                        
+                        let deltaL = abs(gLab[0] - userSkin[0]) // Luminance contrast between garment and skin
+                        let userContrast = contrastIndex ?? 50.0 // Skin tone to hair color ratio (0-100)
+                        
+                        // Contrast Harmony: Match garment's contrast with user's skin-to-hair contrast ratio
+                        let contrastMatch = 100.0 - abs(deltaL - userContrast)
+                        score = contrastMatch
+                        
+                        // Distinct separation bonus
+                        if distance >= 35.0 {
+                            score += 15.0
+                        }
+                        
+                        // Undertone harmony bonus
+                        let skinB = userSkin[2]
+                        let garmentB = gLab[2]
+                        if skinB > 12.0 && garmentB > 0 {
+                            score += 10.0 // Warm skin + warm colorway
+                        } else if skinB <= 12.0 && garmentB <= 2.0 {
+                            score += 10.0 // Cool skin + cool colorway
+                        }
+                    } else if let userContrast = contrastIndex, let gLab = garmentLab {
+                        let targetLuma = userContrast > 50.0 ? 25.0 : 55.0
+                        score = 100.0 - abs(gLab[0] - targetLuma)
+                    }
+                    
+                    let item = Garment(id: "\(garmentId)_cw_\(index)", type: type, thumbnail: cwImage)
+                    candidateColorways.append((index: index, garment: item, score: score))
+                }
+                
+                // Select only the TOP 5 matching color options based on skin tone to hair color ratio
+                let topColorways = candidateColorways
+                    .sorted(by: { $0.score > $1.score })
+                    .prefix(5)
+                
+                for candidate in topColorways {
+                    garments.append(candidate.garment)
+                    addedColorways = true
+                    print("Stylist: Selected Top Colorway #\(candidate.index) (\(candidate.garment.id)) with Match Score: \(String(format: "%.1f", candidate.score))")
                 }
             }
             

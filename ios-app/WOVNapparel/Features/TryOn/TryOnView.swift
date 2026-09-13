@@ -27,7 +27,12 @@ struct TryOnView: View {
             groups[base]?.append(garment)
         }
         
-        return orderedBaseIds.compactMap { groups[$0] }
+        return orderedBaseIds.compactMap { baseId in
+            if let group = groups[baseId] {
+                return Array(group.prefix(5))
+            }
+            return nil
+        }
     }
     
     private var currentOffset: CGSize {

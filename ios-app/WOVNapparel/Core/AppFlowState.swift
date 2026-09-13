@@ -179,7 +179,14 @@ class AppFlowState: ObservableObject {
                     userSkinLAB = [l, a, b]
                 }
                 
-                let fetched = try await FirebaseManager.shared.fetchGarments(for: occasion, skinLAB: userSkinLAB, gender: self.userGender)
+                let contrastIndex = self.userMetrics["chromaticContrastIndex"]
+                
+                let fetched = try await FirebaseManager.shared.fetchGarments(
+                    for: occasion,
+                    skinLAB: userSkinLAB,
+                    contrastIndex: contrastIndex,
+                    gender: self.userGender
+                )
                 if fetched.isEmpty {
                     // Fallback to mock garments if the database is completely empty for this occasion
                     self.recommendedGarments = [
