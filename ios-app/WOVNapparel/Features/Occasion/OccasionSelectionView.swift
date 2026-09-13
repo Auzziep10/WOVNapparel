@@ -30,6 +30,17 @@ struct OccasionSelectionView: View {
                     .ignoresSafeArea()
                     .blur(radius: 40)
                     .overlay(Color.white.opacity(0.3)) // Light overlay to ensure black text is readable
+            } else if let remoteBody = appState.remoteBodyURL, let url = URL(string: remoteBody) {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image {
+                        image.resizable().scaledToFill()
+                    } else {
+                        Color(white: 0.9)
+                    }
+                }
+                .ignoresSafeArea()
+                .blur(radius: 40)
+                .overlay(Color.white.opacity(0.3))
             } else {
                 Color(white: 0.9).ignoresSafeArea()
             }
@@ -135,5 +146,10 @@ struct OccasionSelectionView: View {
         }
         .preferredColorScheme(.light)
         .animation(.easeInOut, value: appState.isUploadingToCloud)
+        .onAppear {
+            if let idx = occasions.firstIndex(of: appState.currentOccasion) {
+                self.selectedIndex = idx
+            }
+        }
     }
 }

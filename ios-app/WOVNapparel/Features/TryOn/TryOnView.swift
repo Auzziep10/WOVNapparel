@@ -154,16 +154,58 @@ struct TryOnView: View {
             
             // 3. UI Overlay
             VStack {
-                // Top Logo
-                HStack {
+                // Top Navigation Bar
+                HStack(alignment: .center, spacing: 12) {
+                    // Back to Occasion Selection
+                    Button(action: {
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            appState.currentRoute = .occasionSelection
+                        }
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.black)
+                            .frame(width: 44, height: 44)
+                            .background(Color.white.opacity(0.85))
+                            .clipShape(Circle())
+                            .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
+                    }
+                    
+                    // Current Occasion Pill Button (Tap to Switch Occasion)
+                    Button(action: {
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            appState.currentRoute = .occasionSelection
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Text(occasion.uppercased())
+                                .font(.system(size: 11, weight: .bold))
+                                .tracking(1.5)
+                                .foregroundColor(.black)
+                            
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(.black.opacity(0.6))
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(Color.white.opacity(0.85))
+                        .clipShape(Capsule())
+                        .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
+                    }
+                    
+                    Spacer()
+                    
                     Image("wovn-logo")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 100)
-                        .colorMultiply(.black) // Force black if needed, or leave native
-                    Spacer()
+                        .frame(width: 80)
                 }
-                .padding(.leading, 24)
+                .padding(.horizontal, 24)
                 .padding(.top, 20)
                 
                 Spacer()
@@ -329,18 +371,43 @@ struct TryOnView: View {
                     .padding(.bottom, 12)
                 }
                 
-                // Bottom Done Button
-                Button(action: {
-                    appState.currentRoute = .profileReview
-                }) {
-                    Text("SAVE & EXIT")
-                        .font(.system(size: 12, weight: .bold))
-                        .tracking(2)
-                        .foregroundColor(.white)
+                // Bottom Action Buttons
+                HStack(spacing: 12) {
+                    Button(action: {
+                        let generator = UIImpactFeedbackGenerator(style: .light)
+                        generator.impactOccurred()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            appState.currentRoute = .occasionSelection
+                        }
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.left")
+                                .font(.system(size: 11, weight: .bold))
+                            Text("OCCASIONS")
+                                .font(.system(size: 11, weight: .bold))
+                                .tracking(1.5)
+                        }
+                        .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 18)
-                        .background(Color.black)
+                        .background(Color.white.opacity(0.92))
                         .cornerRadius(30)
+                        .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
+                    }
+                    
+                    Button(action: {
+                        appState.currentRoute = .profileReview
+                    }) {
+                        Text("SAVE & EXIT")
+                            .font(.system(size: 11, weight: .bold))
+                            .tracking(1.5)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                            .background(Color.black)
+                            .cornerRadius(30)
+                            .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+                    }
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 40)

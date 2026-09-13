@@ -75,6 +75,7 @@ class AppFlowState: ObservableObject {
     @Published var userName: String = ""
     @Published var userMetrics: [String: Double] = [:]
     @Published var userGender: String = UserDefaults.standard.string(forKey: "userGender") ?? "Men"
+    @Published var currentOccasion: String = "Daily"
     
     // Captured Identity Data
     @Published var faceImage: UIImage? = nil
@@ -84,6 +85,7 @@ class AppFlowState: ObservableObject {
     
     // Cloud Sync State
     @Published var isUploadingToCloud: Bool = false
+    @Published var hasSyncedIdentity: Bool = false
     @Published var uploadProgressText: String = ""
     
     // Synthesis State
@@ -355,8 +357,21 @@ class AppFlowState: ObservableObject {
     }
     
     func uploadIdentityData(selectedOccasion: String) {
+        self.currentOccasion = selectedOccasion
+        
+        // Fast path: If photos have already been synced or we already have remote URLs, switch occasion immediately
+        if self.hasSyncedIdentity || self.remoteBodyURL != nil {
+            self.selectedGarmentId = nil
+            self.generatedImageURL = nil
+            self.loadGarments(for: selectedOccasion)
+            self.currentRoute = .tryOn(techPackId: selectedOccasion)
+            return
+        }
+        
         guard let body = bodyImage else { 
             print("Notice: Missing body photo. Skipping cloud upload and jumping to Try-On for demo purposes.")
+            self.selectedGarmentId = nil
+            self.generatedImageURL = nil
             self.loadGarments(for: selectedOccasion)
             self.currentRoute = .tryOn(techPackId: selectedOccasion)
             return 
@@ -399,9 +414,16 @@ class AppFlowState: ObservableObject {
                 
                 try await FirebaseManager.shared.saveMetrics(self.userMetrics, userId: userId, photoURLs: urls, name: self.userName, gender: self.userGender)
                 
+                self.hasSyncedIdentity = true
+                self.remoteBodyURL = bURL.absoluteString
+                if let f = fURL { self.remoteFaceURL = f.absoluteString }
+                if let p = pURL { self.remoteProfileURL = p.absoluteString }
+                
                 self.uploadProgressText = "Identity Synced Successfully."
                 try await Task.sleep(nanoseconds: 1_000_000_000)
                 
+                self.selectedGarmentId = nil
+                self.generatedImageURL = nil
                 self.isUploadingToCloud = false
                 self.loadGarments(for: selectedOccasion)
                 self.currentRoute = .tryOn(techPackId: selectedOccasion)
@@ -410,6 +432,8 @@ class AppFlowState: ObservableObject {
                 print("Failed to sync identity: \(error)")
                 self.uploadProgressText = "Sync Failed. Proceeding locally..."
                 try? await Task.sleep(nanoseconds: 1_500_000_000)
+                self.selectedGarmentId = nil
+                self.generatedImageURL = nil
                 self.isUploadingToCloud = false
                 self.loadGarments(for: selectedOccasion)
                 self.currentRoute = .tryOn(techPackId: selectedOccasion)
